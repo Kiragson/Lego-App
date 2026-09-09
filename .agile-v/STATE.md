@@ -8,7 +8,7 @@
 | **Session** | 2026-09-09 — REQ-0239 BI toFixed currency DONE; commit wave 0232–0239 |
 | **Active REQ** | — (shipped: **0232**–**0239**) |
 | **Done range** | … + **0228**–**0231** + **0232**–**0239** |
-| **Local/origin tip** | commit pending this session |
+| **Local/origin tip** | `56947c2` local (ahead of origin until push) |
 | **Human Gate 1** | APPROVED (`GATE-0008`, `gate1-bi-tofixed-currency-20260909`) |
 | **Human Gate 2** | PENDING — Sentry 24h after Ready (`INT-0001` / `gate2-sentry-24h`) |
 | **Resume token** | `gate2-sentry-24h` |
