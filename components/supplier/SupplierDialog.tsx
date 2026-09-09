@@ -339,7 +339,11 @@ export default function AddSupplierDialog({
             {editingSupplier ? (
               <div className="mt-4">
                 <div className="pb-4">
-                  <DialogFormLabel icon={Truck} required wrapperClassName="mb-2">
+                  <DialogFormLabel
+                    icon={Truck}
+                    required
+                    wrapperClassName="mb-2"
+                  >
                     Supplier Name
                   </DialogFormLabel>
                   <Input
@@ -350,7 +354,11 @@ export default function AddSupplierDialog({
                   />
                 </div>
                 <div className="pb-4">
-                  <DialogFormLabel icon={FileText} optional wrapperClassName="mb-2">
+                  <DialogFormLabel
+                    icon={FileText}
+                    optional
+                    wrapperClassName="mb-2"
+                  >
                     Description
                   </DialogFormLabel>
                   <Textarea
@@ -363,7 +371,11 @@ export default function AddSupplierDialog({
                   />
                 </div>
                 <div className="pb-4">
-                  <DialogFormLabel icon={StickyNote} optional wrapperClassName="mb-2">
+                  <DialogFormLabel
+                    icon={StickyNote}
+                    optional
+                    wrapperClassName="mb-2"
+                  >
                     Notes
                   </DialogFormLabel>
                   <Textarea
@@ -382,7 +394,7 @@ export default function AddSupplierDialog({
                     onCheckedChange={(checked) =>
                       setNewSupplierStatus(checked === true)
                     }
-                    className="mt-0.5 shrink-0 border-emerald-400/30 data-[state=checked]:bg-emerald-500/70"
+                    className="shrink-0 border-emerald-400/30 data-[state=checked]:bg-emerald-500/70"
                   />
                   <Label
                     htmlFor="edit-supplier-status"
@@ -396,7 +408,10 @@ export default function AddSupplierDialog({
                   <Button
                     onClick={handleCancelEdit}
                     variant="secondary"
-                    className={cn("w-full sm:w-auto px-11 gap-2", GLASS_GHOST_BUTTON)}
+                    className={cn(
+                      "w-full sm:w-auto px-11 gap-2",
+                      GLASS_GHOST_BUTTON,
+                    )}
                   >
                     <X className="h-4 w-4 shrink-0" aria-hidden />
                     Cancel
@@ -434,7 +449,11 @@ export default function AddSupplierDialog({
                   />
                 </div>
                 <div className="pb-4">
-                  <DialogFormLabel icon={FileText} optional wrapperClassName="mb-2">
+                  <DialogFormLabel
+                    icon={FileText}
+                    optional
+                    wrapperClassName="mb-2"
+                  >
                     Description
                   </DialogFormLabel>
                   <Textarea
@@ -447,7 +466,11 @@ export default function AddSupplierDialog({
                   />
                 </div>
                 <div className="pb-4">
-                  <DialogFormLabel icon={StickyNote} optional wrapperClassName="mb-2">
+                  <DialogFormLabel
+                    icon={StickyNote}
+                    optional
+                    wrapperClassName="mb-2"
+                  >
                     Notes
                   </DialogFormLabel>
                   <Textarea
@@ -466,7 +489,7 @@ export default function AddSupplierDialog({
                     onCheckedChange={(checked) =>
                       setSupplierStatus(checked === true)
                     }
-                    className="mt-0.5 shrink-0 border-emerald-400/30 data-[state=checked]:bg-emerald-500/70"
+                    className="shrink-0 border-emerald-400/30 data-[state=checked]:bg-emerald-500/70"
                   />
                   <Label
                     htmlFor="supplier-status"
@@ -480,7 +503,10 @@ export default function AddSupplierDialog({
                   <DialogClose asChild>
                     <Button
                       variant={"secondary"}
-                      className={cn("w-full sm:w-auto px-11 gap-2", GLASS_GHOST_BUTTON)}
+                      className={cn(
+                        "w-full sm:w-auto px-11 gap-2",
+                        GLASS_GHOST_BUTTON,
+                      )}
                     >
                       <X className="h-4 w-4 shrink-0" aria-hidden />
                       Cancel

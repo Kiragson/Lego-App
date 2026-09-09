@@ -206,7 +206,7 @@ export default function EmailPreferencesPage({
                     className="flex items-center justify-between gap-2 p-3 rounded-xl border border-gray-300/20 dark:border-white/10 bg-white/30 dark:bg-white/5 hover:bg-white/50 dark:hover:bg-white/10 transition-colors"
                   >
                     <div className="flex items-start gap-2 flex-1 min-w-0">
-                      <div className="mt-0.5 shrink-0">
+                      <div className="shrink-0">
                         <Icon className="h-5 w-5 text-gray-600 dark:text-gray-300" />
                       </div>
                       <div className="flex-1 min-w-0">

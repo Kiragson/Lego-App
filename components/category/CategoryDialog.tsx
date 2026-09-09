@@ -346,7 +346,11 @@ export default function AddCategoryDialog({
                   />
                 </div>
                 <div className="pb-4">
-                  <DialogFormLabel icon={FileText} optional wrapperClassName="mb-2">
+                  <DialogFormLabel
+                    icon={FileText}
+                    optional
+                    wrapperClassName="mb-2"
+                  >
                     Description
                   </DialogFormLabel>
                   <Textarea
@@ -359,7 +363,11 @@ export default function AddCategoryDialog({
                   />
                 </div>
                 <div className="pb-4">
-                  <DialogFormLabel icon={StickyNote} optional wrapperClassName="mb-2">
+                  <DialogFormLabel
+                    icon={StickyNote}
+                    optional
+                    wrapperClassName="mb-2"
+                  >
                     Notes
                   </DialogFormLabel>
                   <Textarea
@@ -378,7 +386,7 @@ export default function AddCategoryDialog({
                     onCheckedChange={(checked) =>
                       setNewCategoryStatus(checked === true)
                     }
-                    className="mt-0.5 shrink-0 border-sky-400/30 data-[state=checked]:bg-sky-500/70"
+                    className="shrink-0 border-sky-400/30 data-[state=checked]:bg-sky-500/70"
                   />
                   <Label
                     htmlFor="edit-category-status"
@@ -392,7 +400,10 @@ export default function AddCategoryDialog({
                   <Button
                     onClick={handleCancelEdit}
                     variant="secondary"
-                    className={cn("w-full sm:w-auto px-11 gap-2", GLASS_GHOST_BUTTON)}
+                    className={cn(
+                      "w-full sm:w-auto px-11 gap-2",
+                      GLASS_GHOST_BUTTON,
+                    )}
                   >
                     <X className="h-4 w-4 shrink-0" aria-hidden />
                     Cancel
@@ -424,7 +435,11 @@ export default function AddCategoryDialog({
                   />
                 </div>
                 <div className="pb-4">
-                  <DialogFormLabel icon={FileText} optional wrapperClassName="mb-2">
+                  <DialogFormLabel
+                    icon={FileText}
+                    optional
+                    wrapperClassName="mb-2"
+                  >
                     Description
                   </DialogFormLabel>
                   <Textarea
@@ -437,7 +452,11 @@ export default function AddCategoryDialog({
                   />
                 </div>
                 <div className="pb-4">
-                  <DialogFormLabel icon={StickyNote} optional wrapperClassName="mb-2">
+                  <DialogFormLabel
+                    icon={StickyNote}
+                    optional
+                    wrapperClassName="mb-2"
+                  >
                     Notes
                   </DialogFormLabel>
                   <Textarea
@@ -456,7 +475,7 @@ export default function AddCategoryDialog({
                     onCheckedChange={(checked) =>
                       setCategoryStatus(checked === true)
                     }
-                    className="mt-0.5 shrink-0 border-sky-400/30 data-[state=checked]:bg-sky-500/70"
+                    className="shrink-0 border-sky-400/30 data-[state=checked]:bg-sky-500/70"
                   />
                   <Label
                     htmlFor="category-status"
@@ -470,7 +489,10 @@ export default function AddCategoryDialog({
                   <DialogClose asChild>
                     <Button
                       variant={"secondary"}
-                      className={cn("w-full sm:w-auto px-11 gap-2", GLASS_GHOST_BUTTON)}
+                      className={cn(
+                        "w-full sm:w-auto px-11 gap-2",
+                        GLASS_GHOST_BUTTON,
+                      )}
                     >
                       <X className="h-4 w-4 shrink-0" aria-hidden />
                       Cancel

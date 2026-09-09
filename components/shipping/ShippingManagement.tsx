@@ -193,7 +193,12 @@ export default function ShippingManagement({
           </DialogDescription>
         </DialogHeader>
 
-        <div className={cn(DIALOG_EDGE_SCROLL_BODY, "overflow-y-auto overflow-x-visible")}>
+        <div
+          className={cn(
+            DIALOG_EDGE_SCROLL_BODY,
+            "overflow-y-auto overflow-x-visible",
+          )}
+        >
           <div className={cn(DIALOG_EDGE_SCROLL_INNER, "gap-4")}>
             {/* Order context densify */}
             <div className="rounded-xl border border-white/15 bg-white/5 p-3 space-y-3">
@@ -242,7 +247,7 @@ export default function ShippingManagement({
               >
                 <div className="rounded-lg border border-amber-200 bg-amber-50 dark:bg-amber-950/30 dark:border-amber-800 p-2">
                   <div className="flex items-start gap-2">
-                    <AlertTriangle className="h-4 w-4 text-amber-600 mt-0.5 shrink-0" />
+                    <AlertTriangle className="h-4 w-4 text-amber-600 shrink-0" />
                     <p className="text-xs text-amber-700 dark:text-amber-400">
                       {/* REQ-0211 — test keys use sandbox US addresses; UI still shows order ship-to */}
                       Generates a Shippo label and sets status to

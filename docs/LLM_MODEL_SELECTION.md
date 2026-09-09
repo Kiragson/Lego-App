@@ -1,498 +1,312 @@
-# AI Model Selection & Fallback Strategy
+# Free-Tier AI & Dev-Infra Provider Reference + Multi-Provider Fallback Strategy
+
+> **Last verified: 2026-09-02** (Groq Qwen3.6→3.8 decommission email + [Supported Models](https://console.groq.com/docs/models); Gemini free Flash IDs from [Gemini pricing](https://ai.google.dev/gemini-api/docs/pricing); OpenRouter gpt-oss `:free` from model pages + free fallbacks / `openrouter/free`). Free tiers change frequently — providers add credit-card requirements, cut rate limits, or deprecate models with little notice. Treat every row below as "true as of last verification," not a permanent guarantee. Re-check a provider's own pricing/docs page before depending on it in production.
+>
+> This file is written to be **portable**: drop it into any project (any language, any framework) as a reference for (1) which AI/dev-infra providers currently offer a real free tier with no credit card required, and (2) how to build a multi-provider automatic-fallback chain so your app never depends on a single model or vendor.
+
+---
 
 ## Purpose
 
-This project is designed to work with multiple LLM providers and should NEVER depend on a single model.
+Any system that calls an LLM (or other AI service) should **never depend on a single provider or model**. Free tiers get rate-limited, models get deprecated, providers have outages, and pricing changes without warning. If one model becomes unavailable, deprecated, rate-limited, overloaded, or fails unexpectedly, the system should silently move to the next suitable provider/model without interrupting the user.
 
-If one model becomes unavailable, deprecated, rate limited, overloaded, or fails unexpectedly, the system should silently switch to the next suitable model without interrupting the user.
+### Goals
 
----
-
-# Goals
-
-- zero manual switching
-- automatic fallback
-- fastest available model
-- highest coding quality
-- minimal latency
-- minimal cost
-- graceful degradation
-- future-proof against provider deprecations
+- Zero manual switching — the app decides, not the user.
+- Automatic fallback across providers and, within a provider, across models.
+- Fastest available model for the task, without sacrificing output quality.
+- Minimal latency, minimal cost (free tiers first, paid only as last resort).
+- Graceful degradation over hard failure.
+- Future-proof against provider deprecations — swap a row in a table, not application logic.
 
 ---
 
-# Important
+## Table of contents
 
-Groq has announced the following model deprecations:
+1. [LLM / chat providers (primary table)](#1-llm--chat-providers-primary-table)
+2. [Groq deprecation watch](#groq-deprecation-watch-verified-2026-09-02-primary-source)
+3. [Preferred coding-model priority (generic)](#preferred-coding-model-priority-generic)
+4. [Embeddings & RAG](#2-embeddings--rag)
+5. [Speech APIs (TTS / STT)](#3-speech-apis-tts--stt)
+6. [Image generation](#4-image-generation)
+7. [AI infrastructure (gateways, observability)](#5-ai-infrastructure-gateways-observability)
+8. [Vector databases](#6-vector-databases)
+9. [Free databases](#7-free-databases-bonus)
+10. [Hosting](#8-hosting-bonus)
+11. [Automation](#9-automation)
+12. [Authentication](#10-authentication-bonus)
+13. [Generic automatic fallback chain architecture](#generic-automatic-fallback-chain-architecture)
+14. [Reference implementation in this repo](#reference-implementation-in-this-repo)
+15. [How to adapt this to a new project](#how-to-adapt-this-to-a-new-project-checklist)
+16. [Hardware-aware local model suggestions](#hardware-aware-local-model-suggestions)
+17. [Coding behaviour & general principles](#coding-behaviour--general-principles)
 
-Deprecated
-
-- llama-3.1-8b-instant
-- llama-3.3-70b-versatile
-
-Shutdown Date
-
-August 16, 2026
-
-Recommended replacements
-
-- openai/gpt-oss-20b
-- openai/gpt-oss-120b
-- qwen/qwen3.6-27b
-
-These deprecated models should never be used for new development. :contentReference[oaicite:0]{index=0}
-
----
-
-# Preferred Coding Models
-
-Priority 1
-
-openai/gpt-oss-120b
-
-Use for
-
-- difficult debugging
-- architecture
-- large repositories
-- refactoring
-- planning
-- agent workflows
-- complex reasoning
+Rows marked **🔑 have key** indicate this project (CodeBook) already has a working API key on file in `docs/personal-dev-info.txt` — useful if you're cloning this doc into a sibling project that shares that key file.
 
 ---
 
-Priority 2
+## 1. LLM / chat providers (primary table)
 
-qwen/qwen3.6-27b
+All providers below expose (or can be driven through) an **OpenAI-compatible `/chat/completions` endpoint**, which is what makes a single generic client viable (see [Generic automatic fallback chain architecture](#generic-automatic-fallback-chain-architecture)).
 
-Use for
+| Provider | Free, no card? | Current free-tier models (verified 2026-09-02) | Notes |
+|---|---|---|---|
+| **Google AI Studio (Gemini)** 🔑 | **Yes** — genuinely indefinite, no card, no expiration | `gemini-2.5-flash`, `gemini-2.5-flash-lite`, `gemini-3.5-flash`, `gemini-3.5-flash-lite` (also listed free: `gemini-3.6-flash`, `gemini-3-flash-preview`, etc.) | OpenAI-compatible endpoint: `https://generativelanguage.googleapis.com/v1beta/openai/`. Pro tier paid-only (Apr 2026). **`gemini-2.0-flash` shut down 2026-06-01 — do not use.** Free-tier prompts may train Google products (paid/Vertex opts out). |
+| **GroqCloud** 🔑 | **Yes** — no card | Production: `openai/gpt-oss-20b`, `openai/gpt-oss-120b`. Preview chat: `qwen/qwen3.8-27b` (replacement for deprecated `qwen/qwen3.6-27b`) | Extremely fast LPU inference. Llama 3.1 8B / 3.3 70B appear as **Enterprise** on the production table — not free-chain targets. See [deprecation watch](#groq-deprecation-watch-verified-2026-09-02-primary-source). Preview models can vanish with short notice. |
+| **OpenRouter** 🔑 | **Yes** — no card for `:free` models | Preferred free chain (2026-09-02): `openai/gpt-oss-120b:free`, `openai/gpt-oss-20b:free`, `google/gemma-4-31b-it:free`, `google/gemma-4-26b-a4b-it:free`, `nvidia/nemotron-3.5-lightning:free`, `nvidia/nemotron-3-super-120b-a12b:free`, `cohere/north-mini-code:free`, `z-ai/glm-5.2:free`, then dynamic `openrouter/free`. Model pages list gpt-oss `:free` at $0 / 131K; **`GET .../models?max_price=0` snapshots can omit them** — treat model pages / free collection + the free router as authoritative, not that filter alone. | Free tier: 20 RPM, ~50 RPD (or ~1K RPD with ≥$10 credit). Failed requests may still consume daily quota. Append `:free`. |
+| **GitHub Models** 🔑 (read-only key on file) | **Yes** — no card, tied to a GitHub account | 45+ models incl. OpenAI GPT-4.1/o-series, Meta Llama 4, Mistral, DeepSeek, Cohere | Rate limits scale with your GitHub Copilot tier (Free/Pro/Pro+/Business) — roughly 10–15 RPM / 50–150 RPD on a free GitHub account. 8K input / 4K output token caps — prototyping tool, not production-scale. |
+| **Cloudflare Workers AI** 🔑 (key on file, **not wired in this repo** — needs an account ID not present in `docs/personal-dev-info.txt`; see REQ-1613 in `.agile-v/DECISION_LOG.md`) | **Yes** — no card, starts immediately on any free Cloudflare account | 50+ models incl. Llama, Mistral, Gemma, DeepSeek, Qwen, Whisper (speech), SDXL (image) | 10,000 free "Neurons" (Cloudflare's normalized compute unit) per day, resets daily at 00:00 UTC — an ongoing daily allowance, not a one-time credit. Requires both an API token *and* your Cloudflare account ID in the request URL. |
+| **Cerebras Cloud** 🔑 | **Yes** — no card, no waitlist | `gpt-oss-120b`, `llama3.3-70b`, `qwen-3-32b`/`qwen-3-235b` family (verify current names — Cerebras mirrors much of the Groq-style OSS lineup) | One of the most generous free tiers found: ~1,000,000 tokens/day, 14,400 req/day, 30 RPM, 60K TPM. Context window capped at 8K on free tier. Extremely fast (wafer-scale hardware). |
+| **NVIDIA NIM** (build.nvidia.com) 🔑 | **Yes** — no card, just an email | 100+ hosted models incl. Llama, Qwen, Mistral, DeepSeek, NVIDIA's own Nemotron | OpenAI-compatible endpoint. ~40 RPM; exact quota varies per model and current platform load ("trial" credits, not a hard token cap). Good breadth of models for a single free signup. |
+| **Hugging Face (Inference Providers / router)** 🔑 | **Yes** — no card for the free tier | e.g. `openai/gpt-oss-20b:fastest`, `openai/gpt-oss-120b:fastest`, `Qwen/Qwen3-8B` via `https://router.huggingface.co/v1` | Free tier ≈ 100K monthly Inference Provider credits (small $ equivalent). Useful as a long fallback list — many IDs 404/410 as hosts rotate; iterate and expect misses. |
+| **Mistral AI (La Plateforme)** 🔑 | **Yes** — no card, "Experiment" tier | `mistral-small-latest`, `open-mistral-nemo`, Codestral, Pixtral (multimodal) | Explicitly built for evaluation, not production — 1 req/sec-class limits (~2 RPM reported), ~1B tokens/month cap. Fine as a fallback rung, not a primary high-volume provider. |
+| **Cohere** 🔑 | **Yes** — no card, trial key issued instantly | `command-r7b-12-2024`, `command-r-08-2024`, Command A, Aya Expanse, Embed v4 | ~1,000 API calls/month, 20 RPM chat / 5 RPM embed. Explicitly for testing/prototyping, not commercial production traffic. |
+| **Zhipu AI (BigModel / GLM)** | **Yes** in most regions — reports vary; some flows require phone verification, not necessarily a card | GLM-4.5-Flash / GLM-4.7-Flash class, up to a 20M-token starter grant on signup | Chinese-market originated; docs and dashboard are partly Chinese-language. Confirm current signup flow before relying on it — one source in our search reported a card + phone-verification requirement, contradicting others. **(unverified — check provider docs before relying on this)**. |
 
-- everyday coding
-- repository edits
-- frontend
-- backend
-- TypeScript
-- React
-- Next.js
-- Shopify Hydrogen
-- Remix
-- Node
-- Python
+### Secondary / limited free tiers (signup-credit model, not an evergreen free tier)
 
-This should be considered the default fast coding model. :contentReference[oaicite:1]{index=1}
+These are useful extra fallback rungs but are **not** a permanent no-cost tier — they hand out a one-time credit on signup and then require a card or stop working:
 
----
-
-Priority 3
-
-openai/gpt-oss-20b
-
-Use for
-
-- simple coding
-- autocomplete
-- quick fixes
-- documentation
-- tool calling
-- JSON generation
-
-This replaces llama-3.1-8b-instant. :contentReference[oaicite:2]{index=2}
+| Provider | Free, no card? | Notes |
+|---|---|---|
+| **DeepInfra** | Limited — ~$1 signup credit, no card | 50+ open models at low per-token pricing after credit runs out. Some sources report no ongoing free tier at all — confirm before relying on it. |
+| **Fireworks AI** | Limited — $1 signup credit, no card | Card required to lift the default 10 req/min cap. Good for a one-time evaluation, not a standing free fallback. |
+| **Together AI** | Limited — signup trial credit, no card | Fast open-model inference; exact current credit amount changes often. |
+| **Novita AI** | Limited — small one-time voucher (~$0.50), no card | Unusual among this group: also publishes a handful of genuinely `$0`/token open-source models that remain free after the voucher is spent — worth checking their current model list. |
 
 ---
 
-# Automatic Fallback Order
+### Groq deprecation watch (verified 2026-09-02, primary source)
 
-Try in this exact order.
+Fetched from Groq customer email (2026-09-02) + [Supported Models](https://console.groq.com/docs/models) / [Deprecations](https://console.groq.com/docs/deprecations):
 
-1. openai/gpt-oss-120b
+| Deprecated model | Shutdown date | Recommended replacement |
+|---|---|---|
+| `qwen/qwen3.6-27b` | **2026-09-14** (deprecated announced 2026-09-02) | `qwen/qwen3.8-27b` — after cutoff, Groq auto-routes 3.6 → 3.8; migrate IDs now |
+| `llama-3.1-8b-instant` | 2026-08-16 | `openai/gpt-oss-20b` |
+| `llama-3.3-70b-versatile` | 2026-08-16 | `openai/gpt-oss-120b` or `qwen/qwen3.8-27b` |
+| `qwen/qwen3-32b` | **2026-07-17 (already past)** | `openai/gpt-oss-120b` |
+| `meta-llama/llama-4-scout-17b-16e-instruct` | 2026-07-17 (already past) | `openai/gpt-oss-120b` or `qwen/qwen3.8-27b` |
+| `moonshotai/kimi-k2-instruct-0905` | 2026-04-15 (already past) | `openai/gpt-oss-120b` |
+| `meta-llama/llama-4-maverick-17b-128e-instruct` | 2026-03-09 (already past) | `openai/gpt-oss-120b` |
+| `meta-llama/llama-guard-4-12b` | 2026-03-05 (already past) | `openai/gpt-oss-safeguard-20b` |
 
-↓
+**Notes (2026-09-02):** `llama-3.1-8b-instant` / `llama-3.3-70b-versatile` may still appear on the Groq production table as **Enterprise** (Contact Sales) — they are **not** free-tier chain targets. `qwen/qwen3.8-27b` is listed under **Preview** models (evaluation; can discontinue with short notice) — keep Production `gpt-oss-*` ahead of it in the chain.
 
-1. qwen/qwen3.6-27b
+**Daily Urlist (this repo):** `src/lib/ai/providers.ts` Groq chain is `openai/gpt-oss-20b` → `openai/gpt-oss-120b` → `qwen/qwen3.8-27b` (updated 2026-09-02). Do **not** keep `qwen/qwen3.6-27b` after the Sep 14 decommission.
 
-↓
+Never hardcode a Groq model without checking `console.groq.com/docs/deprecations` (or `GET https://api.groq.com/openai/v1/models`) periodically — Groq deprecates models more aggressively than most providers on this list.
 
-1. openai/gpt-oss-20b
+### Preferred coding-model priority (generic)
 
-↓
+For agentic coding workflows specifically (not just chat), in order of preference across the free-tier models above:
 
-1. Retry same request once
+1. **`openai/gpt-oss-120b`** (Groq / Cerebras / NVIDIA NIM / OpenRouter `:free`) — difficult debugging, architecture, large repositories, refactoring, planning, agent workflows, complex reasoning.
+2. **`qwen/qwen3.8-27b`** (Groq) — everyday coding: repository edits, frontend, backend, TypeScript, React, Next.js, Node, Python. Treat as the default fast coding model (replaces deprecated `qwen/qwen3.6-27b`).
+3. **`openai/gpt-oss-20b`** (Groq / OpenRouter `:free`) — simple coding, autocomplete, quick fixes, documentation, tool calling, JSON generation. Replaces the deprecated `llama-3.1-8b-instant`.
 
-↓
-
-1. Retry with shorter context
-
-↓
-
-1. Retry without images
-
-↓
-
-1. Retry with chunked context
-
-↓
-
-1. Return partial result instead of failing
-
-Never stop after the first failure.
+Provider preference order for coding tasks specifically (fastest/most reliable free tiers first): **Groq → OpenRouter → Cerebras → NVIDIA NIM → local (Ollama/LM Studio)**. Choose whichever provider currently offers the highest-ranked model from the list above and is configured (has a key).
 
 ---
 
-# Silent Failover Rules
+## 2. Embeddings & RAG
 
-Switch models automatically when
+| Provider | Free, no card? | Notes |
+|---|---|---|
+| **Voyage AI** | Yes, reported no-card signup | 200M free tokens on the `voyage-4` generation (~400K documents) — one of the largest embedding free tiers found. |
+| **Jina AI** 🔑 | Yes | Embeddings v4: ~1M tokens/month free via API; also has a non-commercial free license track. Includes reranking endpoints. |
+| **Cohere** 🔑 | Yes (same trial key as chat) | `embed-v4` included in the ~1,000 calls/month trial tier, 5 RPM on the embed endpoint specifically. |
+| **Hugging Face Inference** 🔑 | Yes | Sentence-transformer and other embedding models available through the same router/credit pool as chat — good for a self-hosted-adjacent fallback, not a primary high-throughput source. |
+| Also viable | — | Google's Gemini embedding endpoint (~1,500 req/day, no card) is a solid no-card fallback if you already hold a Gemini key. |
 
-- timeout
-- provider overload
-- HTTP 429
-- HTTP 500
-- HTTP 502
-- HTTP 503
-- HTTP 504
-- model unavailable
-- deprecated model
-- context overflow
-- tool invocation failure
+## 3. Speech APIs (TTS / STT)
 
-The user should never need to manually change models.
+| Provider | Free, no card? | Notes |
+|---|---|---|
+| **Deepgram** | Yes — $200 signup credit, no card | Most generous evaluation budget of this group; pay-as-you-go afterward at ~$0.03/1,000 characters equivalent. STT-focused (also offers TTS). |
+| **ElevenLabs** 🔑 | Yes | ~10,000 credits/month free ≈ 10 min Multilingual TTS or ~20 min "Flash" model. Good voice quality, tightest free quota on this list. |
+| **Cartesia** | Partial — free tier exists but effectively gated by a $5 minimum to unlock full evaluation in some flows | 10,000 credits on the nominal free tier; check current signup flow before assuming zero friction. **(unverified — confirm current no-card status before relying on this)**. |
+| **AssemblyAI** | Not independently confirmed in this pass | Commonly cited elsewhere as offering a no-card free async-transcription tier; verify directly on assemblyai.com before relying on the claim. **(unverified — check provider docs)**. |
+| Also on file | — | `REPLICATE_API_KEY` 🔑 also hosts speech models (XTTS, Bark) — see Image generation table below for Replicate's general free-tier caveats, which apply here too. |
 
----
+## 4. Image generation
 
-# Context Rules
+| Provider | Free, no card? | Notes |
+|---|---|---|
+| **Hugging Face Spaces** 🔑 | Yes | Community Spaces running Stable Diffusion/Flux on "ZeroGPU" (dynamic H200 access, ~3.5 min/day quota on the free HF account) — genuinely free but low-throughput and queue times vary. |
+| **Fal AI** 🔑 | Limited — one-time signup credit, no card to start | No standing free tier for ongoing use after the trial credit is spent; converts to pay-per-output (~$0.02+/image) afterward. Good OpenAI-compatible-style API. |
+| **Replicate** 🔑 | Limited — no permanent free tier | New accounts can run a capped number of free models from a "Try for Free" collection; no disclosed ongoing free quota. Referral credits ($10) exist but are promotional, not a standing tier. |
+| **Stability AI** | Limited — starting credit balance, terms vary | Similar shape to Fal/Replicate: evaluate with a signup credit, pay afterward. **(unverified — confirm current credit amount before relying on this)**. |
+| Also viable, no card | — | Gemini 2.5 Flash Image via Google AI Studio (~500 req/day reported) rides on the same no-card Gemini key already in this project's key file — often the easiest no-card image option if you already integrated Gemini for chat. |
 
-Prefer
+## 5. AI infrastructure (gateways, observability)
 
-- repository map
-- changed files
-- current file
-- imports
-- dependencies
+| Provider | Free, no card? | Notes |
+|---|---|---|
+| **Cloudflare AI Gateway** | Yes | Core routing/caching/rate-limiting/logging features are free on any Cloudflare account; free tier caps at 100,000 logged AI Gateway requests/month. No per-call gateway fee — you still pay the underlying model provider for actual inference. |
+| **Cloudflare Vectorize** | Yes (prototyping tier) | Free to prototype/experiment on the Workers Free plan; billed per read/write/storage beyond that. See [vector databases](#6-vector-databases) below. |
+| **Vercel AI SDK** 🔑 | Yes — it's an open-source SDK, not a paid service | No "free tier" concept applies — it's a client library (`ai` package) that talks to whatever provider you configure (including every free-tier provider in this doc via its OpenAI-compatible provider). The `VERCEL_AI_SDK_API_KEY` on file is for Vercel's AI Gateway product specifically, if used. |
+| **LangSmith** 🔑 | Yes | Free "Developer" plan: tracing, evals, Prompt Hub, annotation queues, ~5,000 traces/month before paid tiers kick in ($2.50/1K traces on Plus). |
+| **Langfuse** 🔑 | Yes | Fully open-source (MIT) — self-host for zero cost, or use Langfuse Cloud's free tier (~50,000 observability "units"/month). Project already has secret + public + base URL keys on file. |
+| **Helicone** | Not yet provisioned (per key file: "tell me to generate one for this project") | Free tier reported at ~10,000 requests/month; paid plans start around $79/month beyond that. |
 
-Avoid sending the entire repository whenever possible.
+## 6. Vector databases
 
-Use chunking for large repositories.
+| Provider | Free, no card? | Notes |
+|---|---|---|
+| **Pinecone** 🔑 | Yes — permanent free tier | ~2GB storage free "forever" on the serverless tier; production-scale needs the $50/month Standard plan. |
+| **Qdrant Cloud** 🔑 | Yes — permanent free tier | ~1GB free forever; also fully open-source and self-hostable at zero cost if you have infrastructure. |
+| **Weaviate Cloud** 🔑 | Limited — free trial only | Reports indicate payment is required after roughly a two-week trial, unlike Pinecone/Qdrant's standing free tiers. Also open-source/self-hostable for a permanent no-cost option. |
+| **Cloudflare Vectorize** | Yes (prototyping tier) | Same Workers Free plan as AI Gateway above — free to prototype, billed beyond that. Needs a Cloudflare account ID, same caveat as Workers AI. |
 
----
+## 7. Free databases (bonus)
 
-# Coding Behaviour
+| Provider | Free, no card? | Notes |
+|---|---|---|
+| **Neon** (Postgres) | Yes — no card required | ~0.5GB storage, ~100 compute hours/month, scales to zero. Reported as the cleanest "real free tier, no card" Postgres option. |
+| **Supabase** | Yes — no card for the free project tier | ~500MB Postgres + built-in auth + storage + realtime; free projects pause after 7 days of inactivity (auto-resumes on next request in most cases). |
+| **Turso** (libSQL/SQLite edge) | Yes | ~9GB storage across up to 500 databases; strong option for edge-deployed SQLite. |
+| **Upstash Redis** 🔑 | Yes | ~500K commands/month, 256MB data, true pay-per-request beyond that — no idle cost. Project already has both a personal and a university-library Upstash instance on file. |
+| **MongoDB Atlas** | Yes (Flex tier) | Usage-based free/cheap tier capped around $30/month equivalent before you'd need to upgrade; the older fixed "M0 free forever" tier has been largely superseded by Flex — confirm current tier naming on signup. |
 
-Always
+## 8. Hosting (bonus)
 
-- preserve formatting
-- preserve comments
-- preserve types
-- preserve tests
-- preserve lint rules
-- preserve accessibility
-- preserve translations
+| Provider | Free, no card? | Notes |
+|---|---|---|
+| **Cloudflare Pages** | Yes — most generous for static/Jamstack | Unlimited bandwidth, ~500 builds/month, ~100 sites free. No egress fees. |
+| **Render** | Yes — no card required | Free web services (512MB RAM), free static sites, free Postgres, custom domains. Free web services spin down on idle and cold-start on next request. |
+| **Vercel** | Yes for hobby/static; usage-based beyond that | Generous free tier for frontend/Jamstack + serverless functions; scales to credit-based billing for heavier full-stack usage. |
+| **Netlify** | Yes, but moved to credit-based free tier | ~300 "credits"/month on the free plan as of recent pricing changes — no longer unlimited-build-minutes framing. |
+| **Railway** | Limited | Reports now describe a small one-time trial credit (~$5) rather than an ongoing free tier — confirm current terms before depending on it for anything long-running. |
 
-Never rewrite unrelated files.
+## 9. Automation
 
----
+| Provider | Free, no card? | Notes |
+|---|---|---|
+| **n8n** | Yes (self-hosted) / trial (cloud) | Self-hosted Community Edition is free forever, unlimited workflows/executions (you run the infrastructure). n8n Cloud offers a 14-day free trial, no card. Project's own n8n Cloud account is noted as expired in the key file. |
+| **Pipedream** | Yes | Free tier: ~300 credits/month, 3 workflows, 3 connected accounts, plus a small AI-token allowance. |
+| **Make** | Yes | Free plan: ~1,000 operations/month, 1MB data store, scheduling and error handling included. |
+| **Zapier** | Yes, but thin | Free plan: 5 single-step Zaps, 100 tasks/month — the most limited of this group for real automation volume. |
 
-# Tool Usage
+## 10. Authentication (bonus)
 
-Prefer
-
-- search
-- grep
-- repository indexing
-- AST edits
-
-Avoid regex replacements unless necessary.
-
----
-
-# Response Style
-
-Return
-
-- concise explanation
-- modified files
-- patch summary
-- next steps
-
-Avoid unnecessary prose.
-
----
-
-# Hardware-Aware Local Model Suggestions
-
-If local inference is available, choose models based on detected VRAM.
-
-## 8 GB VRAM
-
-Preferred
-
-- Qwen 3.6 3B
-- Gemma 3 4B
-- Llama 3.2 3B
-- Phi-4 Mini
-
-Fallback
-
-- Qwen 2.5 3B
-- Gemma 2 2B
+| Provider | Free, no card? | Notes |
+|---|---|---|
+| **Supabase Auth** | Yes — most generous MAU allowance found | ~50,000 MAU free, then ~$0.00325/MAU. Bundled with Supabase's Postgres + storage if you're already using it. |
+| **Clerk** 🔑 | Yes | Reports vary by metric definition — roughly 10,000 MAU (billed) free, with a separate "50K monthly retained users" figure also cited; confirm current definition on Clerk's pricing page before budgeting around a specific number. |
+| **Better Auth** | Yes — it's self-hosted, open-source, framework-agnostic (not a hosted metered service) | No MAU limit because there's no hosted backend to meter — you own the database and infrastructure. Zero cost beyond whatever you already pay for hosting/DB. |
 
 ---
 
-## 16 GB VRAM
+## Generic automatic fallback chain architecture
 
-Preferred
+This pattern is deliberately framework-agnostic — the same shape works in TypeScript/Express, Python/FastAPI, Next.js API routes, a Cloudflare Worker, or a CLI tool. It has three layers:
 
-- GPT-OSS-20B (quantized if supported)
-- Qwen3.6-27B Q4
-- Gemma 3 12B
-- Mistral Small
+### Layer 1 — Provider registry (data, not code)
 
-Fallback
+A flat, ordered list of provider configs: `{ id, label, envKey, baseUrl, models[], extraHeaders? }`. Order encodes fallback **priority**. Because most free-tier LLM providers (see the table above) speak the same OpenAI-compatible `/chat/completions` JSON shape, this registry is pure data — no per-provider client code needed.
 
-- Qwen2.5-14B
-- DeepSeek-R1 Distill 14B
+Priority ordering strategy (a reasonable default, adjust to your own latency/quality/quota needs):
 
----
+1. Your fastest, most reliable free-tier provider with the best-quality free model (e.g. Groq or Gemini).
+2. A broad-coverage aggregator as a second opinion (e.g. OpenRouter's `:free` models).
+3. Remaining configured providers, roughly ordered by observed reliability and free-tier generosity.
+4. A large-catalog, lower-reliability fallback last (e.g. Hugging Face's router — most model breadth, least consistent uptime per model).
 
-## 24 GB VRAM
+### Layer 2 — One generic client
 
-Preferred
+A single function that takes `(providerConfig, apiKey, model, messages, options)`, POSTs to `${baseUrl}/chat/completions`, and returns a **discriminated result type** rather than throwing:
 
-- Qwen3.6-27B Q6/Q8
-- GPT-OSS-20B
-- DeepSeek-R1 Distill 32B (quantized)
+```
+type ChatResult =
+  | { ok: true; text: string; provider: string; model: string }
+  | { ok: false; kind: "not_configured" | "billing" | "rate_limit" | "upstream"; provider?: string; status?: number; message?: string }
+```
 
-Fallback
+Never throwing on a provider failure is what makes silent fallback possible — the caller just checks `ok` and moves on.
 
-- Gemma 3 27B
-- Mistral Large (quantized)
+### Layer 3 — Retriable-failure classification + orchestration
 
----
+Two nested loops:
 
-## 32 GB VRAM+
+- **Inner loop** (within one provider): try each model in that provider's chain in order; only advance to the next model on a *retriable* failure.
+- **Outer loop** (across providers): try each *configured* provider in priority order; skip unconfigured ones (no API key present) without counting them as a failure; only advance to the next provider on a retriable failure from every model in the current provider's chain.
 
-Preferred
+**Retriable failure classification** (advance to next model/provider):
 
-- GPT-OSS-120B (remote)
-- Qwen3.6-27B full precision
-- DeepSeek distilled large variants
-- Best available local coding model
+- HTTP 408 (timeout), 404/410 (model missing/rotated), 429 (rate limited), 500/502/503/504 (server/upstream error)
+- Request timeout / network error / connection reset
+- Empty or malformed response body
+- Model marked unavailable or deprecated by the provider
+- Context-length overflow (then optionally retry the *same* provider with a shorter/chunked context before moving on)
 
-Prefer highest-quality model before fastest model.
+**Non-retriable** (stop immediately, surface the error): malformed request on your side (4xx other than 408/429), and — importantly — **402 Payment Required / billing errors should be classified separately** (`kind: "billing"`) so you can alert on "this free tier ran out" distinctly from a transient failure, rather than silently retrying forever against an exhausted quota.
 
----
+Never stop after the first failure. If every provider fails, return the *last* failure (for logging/alerting) rather than throwing — let the caller decide whether to show a user-facing error, degrade to a canned response, or queue a retry.
 
-# Provider Preference
+### Fast-skip on rate limit
 
-1. Groq
-2. OpenRouter
-3. OpenAI
-4. Anthropic
-5. Local Ollama
-6. LM Studio
-
-Choose whichever provider offers the highest-ranked available model.
+When a provider returns 429, don't waste time trying its remaining models in the same request — a rate limit on one model from a given key usually means the whole provider is throttled for that window. Skip straight to the next *provider*.
 
 ---
 
-# General Principles
+## Reference implementation in this repo
 
-Prefer
+**The Daily Urlist** ships this pattern at `src/lib/ai/` (Next.js server-side):
 
-- deterministic outputs
-- structured edits
-- complete implementations
-- compile-ready code
-- production-ready quality
+- **`providers.ts`** — Layer 1 registry (verified 2026-09-02):
+  - **Gemini:** `gemini-2.5-flash` → `gemini-2.5-flash-lite` → `gemini-3.5-flash` → `gemini-3.5-flash-lite`
+  - **Groq:** `openai/gpt-oss-20b` → `openai/gpt-oss-120b` → `qwen/qwen3.8-27b`
+  - **OpenRouter:** `openai/gpt-oss-120b:free` → `openai/gpt-oss-20b:free` → `google/gemma-4-31b-it:free` → `google/gemma-4-26b-a4b-it:free` → `nvidia/nemotron-3.5-lightning:free` → `nvidia/nemotron-3-super-120b-a12b:free` → `cohere/north-mini-code:free` → `z-ai/glm-5.2:free` → `openrouter/free`
+  - **Hugging Face:** `openai/gpt-oss-20b:fastest` → `openai/gpt-oss-120b:fastest` → `Qwen/Qwen3-8B`
+- **`client.ts`** — Layer 2: Gemini `generateContent` + OpenAI-compatible `/chat/completions`; retriable statuses include **404/410** (model rotated off free roster) plus 408/429/5xx; per-provider model-chain loop (429 still skips remaining models on that provider).
+- **`enhancement.ts` / `collections.ts` / `search.ts`** — Layer 3 outer loops: walk configured providers in feature-specific order; skip missing keys; fall back gracefully.
+- **`index.ts`** — re-exports for callers.
 
-Avoid
-
-- placeholders
-- TODO comments
-- fake implementations
-- pseudocode
+Only the four providers with existing project env keys are wired. Do not add Cerebras / NIM / GitHub Models / Cloudflare Workers AI unless keys and a new REQ are approved.
 
 ---
 
-# Future Compatibility
+## How to adapt this to a new project (checklist)
 
-This document intentionally avoids hardcoding a single model.
+1. **Inventory your free keys.** List every provider you already have a working, no-card API key for. Start there — don't sign up for new providers until the ones you already have are wired in and insufficient.
+2. **Check which providers share the OpenAI-compatible `/chat/completions` shape.** Most do (see the primary LLM table above). If so, build **one generic client**, not N provider-specific files — this is the single highest-leverage simplification in this whole pattern.
+3. **Order providers by priority**, not just alphabetically: fastest + most reliable + best free-tier quota first, thin/limited-credit providers last.
+4. **Classify failures as retriable vs. not** before writing the orchestration loop (see the list above) — this is the part that's easy to get wrong (e.g. accidentally retrying a 401 forever, or not retrying a 429 at all).
+5. **Never hardcode a single model ID as the only option.** Every provider entry should be a *chain* of models, tried in order, so a single deprecation (see the Groq watch above) doesn't take down the whole provider.
+6. **Return a result type, don't throw** from the low-level request function — this is what makes "silently skip to the next provider" simple instead of a tangle of try/catch.
+7. **Re-verify this doc's tables periodically.** Free tiers are the least stable part of any AI stack — set a calendar reminder or re-run the verification searches every few months, especially before a launch. Use the checklist below.
 
-Whenever a better coding model becomes available, replace only the ranking list while keeping the fallback strategy unchanged.
+### How to re-verify (checklist)
 
-The routing system should automatically adapt without requiring repository-wide changes.
-
-Note: use as much as possible fallback strategies to avoid the risk of model failure using many models with different providers.
-
-# Example Usage from other projects for reference that we already implemented
-
-# AI Model Selection & Fallback Strategy
-
-## Purpose
-
-This project is designed to work with multiple LLM providers and should NEVER depend on a single model.
-
-If one model becomes unavailable, deprecated, rate limited, overloaded, or fails unexpectedly, the system should silently switch to the next suitable model without interrupting the user.
+1. **Groq:** open [Deprecations](https://console.groq.com/docs/deprecations) + [Supported Models](https://console.groq.com/docs/models); optionally `GET https://api.groq.com/openai/v1/models` with your key. Confirm Production vs Preview vs Enterprise.
+2. **OpenRouter:** check model pages / [free collection](https://openrouter.ai/collections/free-models) for `openai/gpt-oss-*:free` and `openrouter/free`; also `GET .../models?max_price=0` — that filter alone can omit gpt-oss free IDs, so do not drop them solely because a snapshot is incomplete. Rebuild the rest of the `:free` chain from live IDs (rosters rotate).
+3. **Gemini:** [Pricing](https://ai.google.dev/gemini-api/docs/pricing) — only models with Free Tier “Free of charge”; drop shut-down IDs (e.g. `gemini-2.0-flash`).
+4. **Hugging Face:** `GET https://router.huggingface.co/v1/models` (with token) — confirm `Qwen/Qwen3-8B` / gpt-oss still listed; keep `:fastest` suffixes intentional.
+5. Update `src/lib/ai/providers.ts` model arrays **and** this doc’s verification date in the same change.
 
 ---
 
-## Goals
+## Hardware-aware local model suggestions
 
-- zero manual switching
-- automatic fallback
-- fastest available model
-- highest coding quality
-- minimal latency
-- minimal cost
-- graceful degradation
-- future-proof against provider deprecations
+If local inference is available (Ollama, LM Studio, etc.), choose models based on detected VRAM as a final, always-available fallback rung below every cloud provider:
 
----
+**8 GB VRAM** — Preferred: Qwen 3.8 3B / Qwen3 8B Q4, Gemma 3 4B, Llama 3.2 3B, Phi-4 Mini. Fallback: Qwen 2.5 3B, Gemma 2 2B.
 
-## Important — Groq deprecations
+**16 GB VRAM** — Preferred: GPT-OSS-20B (quantized if supported), Qwen3.8-27B Q4, Gemma 3 12B, Mistral Small. Fallback: Qwen2.5-14B, DeepSeek-R1 Distill 14B.
 
-Groq has announced shutdown of these models on **August 16, 2026**:
+**24 GB VRAM** — Preferred: Qwen3.8-27B Q6/Q8, GPT-OSS-20B, DeepSeek-R1 Distill 32B (quantized). Fallback: Gemma 3 27B, Mistral Large (quantized).
 
-- `llama-3.1-8b-instant`
-- `llama-3.3-70b-versatile`
-
-Recommended replacements:
-
-- `openai/gpt-oss-20b`
-- `openai/gpt-oss-120b`
-- `qwen/qwen3.6-27b`
-
-These deprecated models should never be used for new development.
+**32 GB VRAM+** — Preferred: GPT-OSS-120B (remote is usually still faster/cheaper than local at this size), Qwen3.8-27B full precision, best available local coding model. Prefer highest-quality model before fastest model at this tier — you have headroom.
 
 ---
 
-## StoryBook Journal — AI Assist implementation (REQ-0010)
+## Coding behaviour & general principles
 
-**Code:** `src/lib/ai-provider.ts` · **Routes:** `/api/ai/assist`, `/api/ai/assist/stream` · **Trace:** CR-0006, CR-0007, Wave 49–50
+Context handling: prefer a repository map, changed files, current file, and direct imports/dependencies over sending an entire repository. Chunk large contexts rather than truncating silently.
 
-Journal AI assist continues a diary entry with 2–3 poetic sentences. Groq requests use `reasoning_format: "hidden"` and `max_tokens: 700` so reasoning models (gpt-oss, qwen3.6) return prose only — not chain-of-thought. OpenRouter uses `reasoning: { exclude: true }`. Sync path also runs `stripReasoning()` as a safety net.
+When an AI agent edits code: always preserve formatting, comments, types, tests, lint rules, accessibility, and translations. Never rewrite unrelated files. Prefer search/grep/repository-indexing/AST-based edits over blind regex replacement.
 
-### Hardcoded model chains (verified 2026-07-07)
+Prefer deterministic outputs, structured edits, complete implementations, and compile-ready/production-ready code. Avoid placeholders, TODO comments, fake implementations, and pseudocode in shipped output.
 
-Only `GROQ_API_KEY` and `OPENROUTER_API_KEY` env vars are required on Vercel. Model IDs live in code — no model env vars.
-
-**Groq** (shuffled per request via Fisher-Yates):
-
-1. `openai/gpt-oss-20b` — fastest, primary for short creative prose
-2. `qwen/qwen3.6-27b` — richer prose (Preview tier on Groq)
-3. `openai/gpt-oss-120b` — production safety net
-
-**OpenRouter** (`:free` tier, shuffled):
-
-1. `meta-llama/llama-3.3-70b-instruct:free`
-2. `deepseek/deepseek-chat-v3-0324:free`
-3. `openai/gpt-oss-20b:free`
-
-**Legacy:** Anthropic (`ANTHROPIC_API_KEY`) when Groq + OpenRouter both fail.
-
-**Dev placeholder:** `DEV_PLACEHOLDER` in `ai-assist.ts` when no keys are set.
-
-### Failover behaviour
-
-- Retry next model on HTTP 408, 429, 500, 502, 503, 504, empty response, or network error
-- `usedFallback: true` when crossing from Groq to OpenRouter (toast: "Using backup AI provider")
-- `rateLimited: true` when every Groq + OpenRouter model returns 429 (toast with dynamic `retryAfterSec`)
-- User-facing rate limit: 10/min per user via Redis (`consumeAiRateLimit`)
-
-### Future model updates
-
-To adopt new models, edit only the `GROQ_MODELS` / `OPENROUTER_MODELS` arrays in `ai-provider.ts` and update TC-0044 tests. No Vercel env changes required.
-
----
-
-## Preferred Coding Models (generic / agent workflows)
-
-Priority 1 — `openai/gpt-oss-120b` — difficult debugging, architecture, large repos, refactoring, planning, agent workflows, complex reasoning.
-
-Priority 2 — `qwen/qwen3.6-27b` — everyday coding, frontend, backend, TypeScript, React, Next.js.
-
-Priority 3 — `openai/gpt-oss-20b` — simple coding, autocomplete, quick fixes, documentation, tool calling, JSON generation.
-
----
-
-## Automatic Fallback Order (generic)
-
-For agent/IDE workflows (not fully implemented in journal assist):
-
-1. `openai/gpt-oss-120b`
-2. `qwen/qwen3.6-27b`
-3. `openai/gpt-oss-20b`
-4. Retry same request once
-5. Retry with shorter context
-6. Retry without images
-7. Retry with chunked context
-8. Return partial result instead of failing
-
-Never stop after the first failure.
-
----
-
-## Silent Failover Rules
-
-Switch models automatically when:
-
-- timeout
-- provider overload
-- HTTP 429, 500, 502, 503, 504
-- model unavailable or deprecated
-- context overflow
-- tool invocation failure
-
-The user should never need to manually change models.
-
----
-
-## Context Rules
-
-Prefer repository map, changed files, current file, imports, dependencies. Avoid sending the entire repository. Use chunking for large repositories.
-
----
-
-## Coding Behaviour
-
-Always preserve formatting, comments, types, tests, lint rules, accessibility, translations. Never rewrite unrelated files.
-
----
-
-## Provider Preference
-
-1. Groq
-2. OpenRouter
-3. OpenAI
-4. Anthropic
-5. Local Ollama
-6. LM Studio
-
-Choose whichever provider offers the highest-ranked available model.
-
----
-
-## Stock-inventory — Groq fallback (REQ-0018)
-
-**Code:** [`lib/ai/groq.ts`](../lib/ai/groq.ts) · **Orchestrator:** [`lib/ai/create-chat-completion.ts`](../lib/ai/create-chat-completion.ts) · **Routes:** `/api/ai/insights`, `/api/forecasting`
-
-Only `GROQ_API_KEY` required on Vercel. Model IDs live in code (`GROQ_MODEL_CHAIN`); optional `GROQ_MODEL` overrides to a single non-deprecated model.
-
-**Fast-first chain** (failover on 429/5xx/empty/network):
-
-1. `openai/gpt-oss-20b`
-2. `qwen/qwen3.6-27b`
-3. `openai/gpt-oss-120b`
-
-**Deprecated (remapped automatically):** `llama-3.3-70b-versatile`, `llama-3.1-8b-instant` — shutdown Aug 16, 2026.
-
-**Reasoning models:** `reasoning_format: "hidden"` on gpt-oss and qwen requests so insights JSON stays clean.
-
-**Tests:** `lib/ai/groq.test.ts`, `lib/ai/create-chat-completion.test.ts`
-
----
-
-## Future Compatibility
-
-Whenever a better coding model becomes available, replace only the ranking arrays while keeping the fallback strategy unchanged. The routing system should adapt without repository-wide changes.
-
-Use as many fallback strategies as practical to avoid single-model failure risk across providers.
+This document intentionally avoids hardcoding a single "best" model or provider. Whenever a better model becomes available, update only the relevant table row or model-chain array — the fallback *architecture* should never need to change alongside it.
