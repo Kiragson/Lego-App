@@ -696,3 +696,5 @@ Format: `TIMESTAMP | AGENT | DECISION | RATIONALE | REQ-ID`
 2026-09-09T16:20:00+02:00 | build-agent | BI averagePrice/valueDensity toFixed → formatStableCurrency | Close verify-deep leftover after OPEN-3 | REQ-0239
 
 2026-09-09T16:25:00+02:00 | red-team | REQ-0239 PASS; security PASS for wave 0232–0239; commit-ready | lint ✓ test 815 ✓ invalidate 222 ✓ tsc ✓ build ✓ | REQ-0239
+
+2026-09-09T16:35:00+02:00 | release-manager | Tip fe80aaa on origin; Vercel READY dpl_HApgnTGt…; OPEN-1 watch started | Do not APPROVE Gate 2 until 24h quiet; agent HTTP smoke 429 checkpoint | REQ-0009

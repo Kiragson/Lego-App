@@ -4,7 +4,8 @@
 > Root `SENTRY_ERRORS.md` is a gitignored live dump — not the tracked source of truth.
 
 **Last update:** 2026-09-09  
-**Gate 2:** PENDING — `gate2-sentry-24h` / REQ-0009 after Vercel Ready
+**Gate 2:** PENDING (watch started) — `gate2-sentry-24h` / REQ-0009  
+**Prod tip:** `fe80aaa` (includes `56947c2` REQ-0232–0239) — Vercel production **READY** `dpl_HApgnTGt3RKCaGZwJ3bBT2KEHwhy` → `stockly-inventory.vercel.app`
 
 ---
 
@@ -12,8 +13,8 @@
 
 | ID | Issue | Status | Next |
 | ---- | -------- | -------- | ------ |
-| OPEN-1 | Post-deploy Sentry quiet watch (24h) | Process | Deploy tip with REQ-0232…0239 → Ready → watch High/Error; close Gate 2 if clean |
-| OPEN-2 | Hydration on `/` after currency fix | Observe | REQ-0237 + REQ-0238 closed locale currency SSR mismatch (home + admin/BI). If events continue: Replay (translate vs app). Do **not** blanket-scrub “Hydration failed” |
+| OPEN-1 | Post-deploy Sentry quiet watch (24h) | **Watch in progress** | Tip `fe80aaa` Ready. Watch Sentry High/Error ~24h; close Gate 2 only if clean. Human: confirm Network `/api/monitoring` in browser (agent curl hit Vercel Security Checkpoint 429) |
+| OPEN-2 | Hydration on `/` after currency fix | Observe | Currency fix on tip. If events continue: Session Replay (translate vs app). Do **not** blanket-scrub “Hydration failed” |
 | OPEN-4 | Hooks-after-`removeChild` fallout | Leave | Covered by Radix/translate scrub + ErrorBoundary; only reopen if Replay shows app conditional hooks |
 
 ---
@@ -31,4 +32,4 @@
 | 0239 | BI averagePrice/valueDensity `$…toFixed(2)` → `formatStableCurrency` |
 | Earlier | Product 4xx→Sentry, translate/`removeChild`, ChunkLoad, OAuth warn — see git / CLAUDE.md |
 
-**Verdict:** Production-ready for this wave. Not “zero noise forever” until OPEN-1 completes.
+**Verdict:** Code wave shipped + prod Ready. Gate 2 still needs 24h quiet Sentry — not “zero noise forever” until OPEN-1 closes with evidence.

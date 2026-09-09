@@ -1,11 +1,21 @@
 # Validation Summary — Cycle C1
 
-**Generated:** 2026-09-09 (REQ-0239 BI toFixed currency)
-**eval_gate_status:** PENDING (Human Gate 2)
-**Active:** Deploy tip → 24h Sentry (`gate2-sentry-24h`)
-**Last ship:** REQ-0239 BI averagePrice/valueDensity → formatStableCurrency
+**Generated:** 2026-09-09 (Gate 2 path — watch started)
+**eval_gate_status:** PENDING (Human Gate 2 — watch in progress)
+**Active:** 24h Sentry quiet (`gate2-sentry-24h`)
+**Last ship:** tip `fe80aaa` production READY (includes REQ-0232–0239)
 
 ---
+
+## Gate 2 start — prod Ready (2026-09-09)
+
+| Check | Result |
+| ----- | ------ |
+| Origin | `main` @ `fe80aaa` (synced; push no-op) |
+| Vercel | READY `dpl_HApgnTGt3RKCaGZwJ3bBT2KEHwhy` · commit `fe80aaa` · alias `stockly-inventory.vercel.app` |
+| Smoke HTTP | Agent/MCP → **429** Vercel Security Checkpoint (`x-vercel-mitigated: challenge`) — human browser smoke required |
+| Docs | OPEN-1 → Watch in progress; OPEN-2/4 unchanged; Gate 2 **not** fake-closed |
+| Gate 2 | Still PENDING until 24h quiet High/Error |
 
 ## REQ-0239 — BI toFixed currency parity (2026-09-09)
 
