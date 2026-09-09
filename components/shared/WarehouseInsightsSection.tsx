@@ -19,6 +19,7 @@ import { WAREHOUSE_STOCK_PIE_COLORS } from "@/lib/ui/catalog-insights-chart-data
 import {
   CHART_LABEL_TOP_MARGIN,
   createChartBarLabelRenderer,
+  createChartPieCountLabel,
   formatChartCountLabel,
 } from "@/lib/ui/chart-point-label";
 import { DetailInfoRow } from "@/components/orders/detail";
@@ -150,8 +151,9 @@ export function WarehouseInsightsSection({
                 nameKey="name"
                 cx="50%"
                 cy="50%"
-                outerRadius={80}
-                label={({ name, value }) => `${name}: ${value}`}
+                outerRadius="85%"
+                labelLine={false}
+                label={createChartPieCountLabel()}
               >
                 {stockChartData.map((_, index) => (
                   <Cell

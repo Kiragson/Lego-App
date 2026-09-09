@@ -55,6 +55,7 @@ import {
   CHART_LABEL_TOP_MARGIN,
   createChartBarLabelRenderer,
   createChartDotLabelRenderer,
+  createChartPiePercentLabel,
   formatChartCountLabel,
 } from "@/lib/ui/chart-point-label";
 import { useAuth } from "@/contexts";
@@ -1150,18 +1151,8 @@ export default function BusinessInsightPage({
                               cx="50%"
                               cy="50%"
                               labelLine={false}
-                              label={({ name, percent, x, y, textAnchor }) => (
-                                <text
-                                  x={x}
-                                  y={y}
-                                  textAnchor={textAnchor}
-                                  dominantBaseline="central"
-                                  className="fill-gray-700 dark:fill-white text-xs font-normal"
-                                >
-                                  {`${name} ${((percent || 0) * 100).toFixed(0)}%`}
-                                </text>
-                              )}
-                              outerRadius="100%"
+                              label={createChartPiePercentLabel()}
+                              outerRadius="85%"
                               fill="#8884d8"
                               dataKey="value"
                             >
@@ -1213,7 +1204,6 @@ export default function BusinessInsightPage({
                               label={createChartDotLabelRenderer(
                                 analyticsData.monthlyTrend.length,
                                 formatChartCountLabel,
-                                false,
                               )}
                             />
                           </AreaChart>
@@ -1279,7 +1269,15 @@ export default function BusinessInsightPage({
                           pulseClassName="min-h-[300px]"
                         >
                           <ResponsiveChartContainer>
-                            <BarChart data={orderTrendByMonth}>
+                            <BarChart
+                              data={orderTrendByMonth}
+                              margin={{
+                                top: CHART_LABEL_TOP_MARGIN,
+                                right: 8,
+                                left: 0,
+                                bottom: 0,
+                              }}
+                            >
                               <CartesianGrid strokeDasharray="3 3" />
                               <XAxis dataKey="month" />
                               <YAxis />
@@ -1556,7 +1554,6 @@ export default function BusinessInsightPage({
                               label={createChartDotLabelRenderer(
                                 analyticsData.monthlyTrend.length,
                                 formatChartCountLabel,
-                                false,
                               )}
                             />
                           </LineChart>

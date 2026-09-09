@@ -25,6 +25,7 @@ import { ResponsiveChartContainer } from "@/components/ui/responsive-chart-conta
 import {
   CHART_LABEL_TOP_MARGIN,
   createChartBarLabelRenderer,
+  createChartPieCountLabel,
   formatChartCurrencyLabel,
 } from "@/lib/ui/chart-point-label";
 import { formatStableCurrency } from "@/lib/format";
@@ -390,8 +391,9 @@ export function CatalogInsightsSection({
                 nameKey="name"
                 cx="50%"
                 cy="50%"
-                outerRadius={80}
-                label={({ name, value }) => `${name}: ${value}`}
+                outerRadius="85%"
+                labelLine={false}
+                label={createChartPieCountLabel()}
               >
                 {stockChartData.map((_, index) => (
                   <Cell

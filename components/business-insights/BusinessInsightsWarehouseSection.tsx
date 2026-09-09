@@ -50,6 +50,7 @@ import { getWarehouseTypeLabel } from "@/lib/ui/warehouse-type-styles";
 import {
   CHART_LABEL_TOP_MARGIN,
   createChartBarLabelRenderer,
+  createChartPiePercentLabel,
 } from "@/lib/ui/chart-point-label";
 import type { WarehouseStockSummary } from "@/types/stock-allocation";
 import { formatStableCurrency } from "@/lib/format";
@@ -166,18 +167,8 @@ export function BusinessInsightsWarehouseSection({
                   cx="50%"
                   cy="50%"
                   labelLine={false}
-                  label={({ name, percent, x, y, textAnchor }) => (
-                    <text
-                      x={x}
-                      y={y}
-                      textAnchor={textAnchor}
-                      dominantBaseline="central"
-                      className="fill-gray-700 dark:fill-white text-xs font-normal"
-                    >
-                      {`${name} ${((percent || 0) * 100).toFixed(0)}%`}
-                    </text>
-                  )}
-                  outerRadius="100%"
+                  label={createChartPiePercentLabel()}
+                  outerRadius="85%"
                   fill="#06b6d4"
                   dataKey="value"
                 >

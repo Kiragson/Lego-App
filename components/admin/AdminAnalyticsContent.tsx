@@ -79,9 +79,11 @@ import {
   CARD_LIST_META_ROW_CLASS,
 } from "@/lib/ui/card-list-styles";
 import {
+  CHART_LABEL_RIGHT_MARGIN,
   CHART_LABEL_TOP_MARGIN,
   createChartBarLabelRenderer,
   createChartDotLabelRenderer,
+  createChartHorizontalBarLabelRenderer,
   formatChartCountLabel,
 } from "@/lib/ui/chart-point-label";
 
@@ -565,7 +567,6 @@ export default function AdminAnalyticsContent({
                       label={createChartDotLabelRenderer(
                         stats.trends?.length ?? 0,
                         formatChartCountLabel,
-                        false,
                       )}
                     />
                     <Area
@@ -578,8 +579,6 @@ export default function AdminAnalyticsContent({
                       dot={{ r: 3 }}
                       label={createChartDotLabelRenderer(
                         stats.trends?.length ?? 0,
-                        undefined,
-                        false,
                       )}
                     />
                   </AreaChart>
@@ -631,12 +630,14 @@ export default function AdminAnalyticsContent({
                       fill="hsl(var(--chart-1))"
                       name="Products"
                       radius={[4, 4, 0, 0]}
+                      label={createChartBarLabelRenderer(formatChartCountLabel)}
                     />
                     <Bar
                       dataKey="invoices"
                       fill="hsl(var(--chart-2))"
                       name="Invoices"
                       radius={[4, 4, 0, 0]}
+                      label={createChartBarLabelRenderer(formatChartCountLabel)}
                     />
                   </BarChart>
                 </ResponsiveChartContainer>
@@ -825,7 +826,7 @@ export default function AdminAnalyticsContent({
                       layout="vertical"
                       margin={{
                         top: CHART_LABEL_TOP_MARGIN,
-                        right: 8,
+                        right: CHART_LABEL_RIGHT_MARGIN,
                         left: 70,
                         bottom: 8,
                       }}
@@ -858,7 +859,7 @@ export default function AdminAnalyticsContent({
                       <Bar
                         dataKey="count"
                         radius={[0, 4, 4, 0]}
-                        label={createChartBarLabelRenderer(
+                        label={createChartHorizontalBarLabelRenderer(
                           formatChartCountLabel,
                         )}
                       />
@@ -1108,7 +1109,7 @@ export default function AdminAnalyticsContent({
                     layout="vertical"
                     margin={{
                       top: CHART_LABEL_TOP_MARGIN,
-                      right: 8,
+                      right: CHART_LABEL_RIGHT_MARGIN,
                       left: 70,
                       bottom: 8,
                     }}
@@ -1141,7 +1142,9 @@ export default function AdminAnalyticsContent({
                     <Bar
                       dataKey="count"
                       radius={[0, 4, 4, 0]}
-                      label={createChartBarLabelRenderer(formatChartCountLabel)}
+                      label={createChartHorizontalBarLabelRenderer(
+                        formatChartCountLabel,
+                      )}
                     />
                   </BarChart>
                 </ResponsiveChartContainer>
@@ -1246,7 +1249,7 @@ export default function AdminAnalyticsContent({
                           layout="vertical"
                           margin={{
                             top: CHART_LABEL_TOP_MARGIN,
-                            right: 8,
+                            right: CHART_LABEL_RIGHT_MARGIN,
                             left: 90,
                             bottom: 8,
                           }}
@@ -1279,7 +1282,7 @@ export default function AdminAnalyticsContent({
                           <Bar
                             dataKey="count"
                             radius={[0, 4, 4, 0]}
-                            label={createChartBarLabelRenderer(
+                            label={createChartHorizontalBarLabelRenderer(
                               formatChartCountLabel,
                             )}
                           />

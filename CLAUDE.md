@@ -1221,6 +1221,19 @@ Hub: `lib/ui/typography-scale.ts`. Hubs import tokens; ~45 inline files use equi
 
 **No invalidation changes.**
 
+## Chart label polish (all non-zero points)
+
+| Piece | Location |
+|-------|----------|
+| Hub | `lib/ui/chart-point-label.tsx` — `DEFAULT_CHART_DOT_LAST_ONLY=false`; zero-skip on bar/dot/pie; `CHART_LABEL_TOP_MARGIN` / `CHART_LABEL_RIGHT_MARGIN` |
+| Vertical bars | `ChartBarLabel` + `createChartBarLabelRenderer` — top label on upright bars |
+| Horizontal bars | `ChartHorizontalBarLabel` + `createChartHorizontalBarLabelRenderer` — tip label when `layout="vertical"` |
+| Pies | `renderChartPieOutsideLabel`; `createChartPiePercentLabel` / `createChartPieCountLabel`; `labelLine={false}`; `outerRadius="85%"` |
+| Admin | New products & invoices Bars labeled; order/invoice/warehouse status use horizontal renderer + right margin |
+| BI / catalog / warehouse | Shared pie helpers; Order Count bar `margin.top` |
+
+**No TanStack/SSR/invalidation changes** — Recharts SVG label UI only.
+
 ## Densify gateway (REQ-0221) + payment settle (REQ-0222)
 
 | Piece | Location |

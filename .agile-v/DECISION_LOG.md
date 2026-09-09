@@ -704,3 +704,5 @@ Format: `TIMESTAMP | AGENT | DECISION | RATIONALE | REQ-ID`
 2026-09-09T17:20:00+02:00 | build-agent | Invoice create/update ignore client tax/shipping/discount/total | Order-authoritative money parity with REQ-0236; Stripe amountDue integrity | REQ-0009
 
 2026-09-09T17:20:00+02:00 | red-team | Harden W1–W5 verify PASS WITH WARNINGS; security PASS; Gate 2 still PENDING | lint ✓ tsc ✓ vitest hub 12 ✓ invalidate 222 ✓; no fake Gate 2 close | REQ-0009
+
+2026-09-09T17:55:00+02:00 | build-agent | Chart label polish — all non-zero Recharts points | lastOnly default false; horizontal bar + pie helpers; CHART_LABEL_RIGHT_MARGIN; zero-skip bars | REQ-0077

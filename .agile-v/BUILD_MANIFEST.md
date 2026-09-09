@@ -684,3 +684,6 @@
 | ART-0009h3 | REQ-0009 | prisma/invoice.ts fee lock | ignore client fees/total |
 | ART-0009h4 | REQ-0009 | formatStableCurrency Pay/detail/dialog sweep | hydration-safe $ |
 | TC-0009h | REQ-0009 | lint ✓ tsc ✓ vitest 12 ✓ invalidate 222 ✓ security PASS | harden W1–W5 |
+
+| ART-0223e | REQ-0077 | `lib/ui/chart-point-label.tsx` + admin/BI/catalog/warehouse chart consumers | All non-zero point labels; horizontal bar + pie helpers |
+| TC-0223e | REQ-0077 | `chart-point-label.test.ts` 5/5 · eslint · tsc · build ✓ | chart label polish |
