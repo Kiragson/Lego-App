@@ -265,7 +265,7 @@ flowchart LR
 
 ### Prerequisites
 
-- **Node.js** 20+ recommended (18+ may work)
+- **Node.js** **24.x** required (`package.json` `engines.node`; Vercel pin — Node 20 EOL after 2026-10-01)
 - **npm**
 - **MongoDB** local or [Atlas](https://www.mongodb.com/atlas)
 

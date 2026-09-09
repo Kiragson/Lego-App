@@ -88,3 +88,6 @@
 | 2026-07-27 | Idle badge harden + Fix B merge + hydration toDateOrNull | REQ-0136 |
 
 | 2026-07-27 | statusAt under badges + hydration date sweep | REQ-0136 |
+
+| 2026-09-09 | CR — Node 24.x engines + safe dependency/audit remediation (plan; Gate 1 pending) | REQ-0228, REQ-0229 |
+| 2026-09-09 | REQ-0228/0229/0230 — Node 24.x, audit 0, Sentry tunnel harden (done) | REQ-0228, REQ-0229, REQ-0230 |

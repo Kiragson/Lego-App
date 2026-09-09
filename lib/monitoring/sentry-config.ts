@@ -137,32 +137,7 @@ export function isBrowserTranslationRemoveChildError(
   );
 }
 
-/** Strip auth/cookies before events leave the app; drop known DOM noise (translate + Radix portal) */
-export function scrubSentryEvent(
-  event: ErrorEvent,
-  _hint?: EventHint,
-): ErrorEvent | null {
-  if (
-    isBrowserTranslationRemoveChildError(event) ||
-    isRadixPortalRemoveChildSentryEvent(event)
-  ) {
-    return null;
-  }
-
-  if (event.request) {
-    delete event.request.headers?.authorization;
-    delete event.request.headers?.cookie;
-    delete event.request.cookies;
-  }
-  if (event.contexts?.request?.headers) {
-    const headers = event.contexts.request.headers as Record<string, unknown>;
-    delete headers.authorization;
-    delete headers.cookie;
-  }
-  return event;
-}
-
-/** Shared ignore list (extensions, benign browser noise) */
+/** Shared ignore list (extensions, benign browser noise, stale deploy chunks) */
 export const SENTRY_IGNORE_ERRORS: Array<string | RegExp> = [
   "top.GLOBALS",
   "originalCreateNotification",
@@ -180,7 +155,64 @@ export const SENTRY_IGNORE_ERRORS: Array<string | RegExp> = [
   "ResizeObserver loop completed with undelivered notifications",
   "Non-Error promise rejection captured",
   "AI service did not return insights",
+  "ChunkLoadError",
+  "Loading chunk",
+  "Failed to load chunk",
+  /Loading CSS chunk [\d]+ failed/,
 ];
+
+/** Drop events whose stack/frames come from browser extensions */
+export const SENTRY_DENY_URLS: RegExp[] = [
+  /^chrome-extension:\/\//i,
+  /^moz-extension:\/\//i,
+  /^safari-extension:\/\//i,
+  /^safari-web-extension:\/\//i,
+];
+
+/** True when exception text looks like a stale Next.js chunk after deploy */
+export function isChunkLoadSentryEvent(event: ErrorEvent): boolean {
+  const values = event.exception?.values ?? [];
+  for (const v of values) {
+    const type = v.type ?? "";
+    const text = typeof v.value === "string" ? v.value : "";
+    if (
+      type === "ChunkLoadError" ||
+      /chunkloaderror/i.test(text) ||
+      /loading chunk/i.test(text) ||
+      /failed to load chunk/i.test(text) ||
+      /loading css chunk/i.test(text)
+    ) {
+      return true;
+    }
+  }
+  return false;
+}
+
+/** Strip auth/cookies before events leave the app; drop known DOM noise (translate + Radix portal) */
+export function scrubSentryEvent(
+  event: ErrorEvent,
+  _hint?: EventHint,
+): ErrorEvent | null {
+  if (
+    isBrowserTranslationRemoveChildError(event) ||
+    isRadixPortalRemoveChildSentryEvent(event) ||
+    isChunkLoadSentryEvent(event)
+  ) {
+    return null;
+  }
+
+  if (event.request) {
+    delete event.request.headers?.authorization;
+    delete event.request.headers?.cookie;
+    delete event.request.cookies;
+  }
+  if (event.contexts?.request?.headers) {
+    const headers = event.contexts.request.headers as Record<string, unknown>;
+    delete headers.authorization;
+    delete headers.cookie;
+  }
+  return event;
+}
 
 /** Base options reused by server and edge runtimes */
 export function getServerSentryInitOptions() {
@@ -189,11 +221,12 @@ export function getServerSentryInitOptions() {
     dsn,
     environment: process.env.NODE_ENV || "development",
     tracesSampleRate: getTracesSampleRate(),
-    enableLogs: true,
+    enableLogs: false,
     sendDefaultPii: false,
     release: process.env.NEXT_PUBLIC_SENTRY_RELEASE || undefined,
     beforeSend: scrubSentryEvent,
     ignoreErrors: SENTRY_IGNORE_ERRORS,
+    denyUrls: SENTRY_DENY_URLS,
   } as const;
 }
 
@@ -204,7 +237,7 @@ export function getClientSentryInitOptions() {
     dsn,
     environment: process.env.NODE_ENV || "development",
     tracesSampleRate: getTracesSampleRate(),
-    enableLogs: true,
+    enableLogs: false,
     sendDefaultPii: false,
     release: process.env.NEXT_PUBLIC_SENTRY_RELEASE || undefined,
     // Routes browser envelopes through our domain (see SENTRY_TUNNEL_PATH + next.config tunnelRoute)
@@ -213,5 +246,6 @@ export function getClientSentryInitOptions() {
     replaysOnErrorSampleRate: 1,
     beforeSend: scrubSentryEvent,
     ignoreErrors: SENTRY_IGNORE_ERRORS,
+    denyUrls: SENTRY_DENY_URLS,
   } as const;
 }

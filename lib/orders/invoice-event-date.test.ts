@@ -32,12 +32,15 @@ describe("resolveInvoiceSecondaryEvent", () => {
   });
 
   it("falls back to due date for sent", () => {
+    const futureDue = new Date();
+    futureDue.setUTCDate(futureDue.getUTCDate() + 30);
+    const dueDate = futureDue.toISOString();
     expect(
       resolveInvoiceSecondaryEvent({
         status: "sent",
         sentAt: "2026-07-15T00:00:00.000Z",
-        dueDate: "2026-08-14T00:00:00.000Z",
+        dueDate,
       }),
-    ).toMatchObject({ kind: "due", date: "2026-08-14T00:00:00.000Z" });
+    ).toMatchObject({ kind: "due", date: dueDate });
   });
 });

@@ -12,8 +12,5 @@ import {
 if (isSentryEnabled()) {
   Sentry.init({
     ...getServerSentryInitOptions(),
-    integrations: [
-      Sentry.consoleLoggingIntegration({ levels: ["warn", "error"] }),
-    ],
   });
 }

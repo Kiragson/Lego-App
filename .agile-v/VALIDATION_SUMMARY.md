@@ -1,9 +1,33 @@
 # Validation Summary — Cycle C1
 
-**Generated:** 2026-08-01 (REQ-0227 personal ticket list scope)
+**Generated:** 2026-09-09 (REQ-0228/0229/0230 Node 24 + audit-zero + Sentry harden)
 **eval_gate_status:** PENDING (Human Gate 2)
-**Active:** Prod smoke after next deploy
-**Last ship:** personal /support-tickets created_by_me key
+**Active:** Prod smoke after next deploy (Node 24 engines + `/api/monitoring`)
+**Last ship:** REQ-0228/0229/0230 local complete — commit pending
+
+---
+
+## REQ-0228 / 0229 / 0230 — Node 24 + deps + Sentry (2026-09-09)
+
+| Check | Result |
+| ----- | ------ |
+| engines.node | `24.x` in package.json; `.nvmrc` = 24; README updated |
+| npm audit | **0** vulnerabilities (overrides for uuid/deepmerge-ts/transitive CVEs) |
+| allowScripts | prisma / engines / sentry-cli / esbuild / fsevents / unrs-resolver / core-js |
+| Tunnel | `SENTRY_TUNNEL_PATH` `/api/monitoring` synced client + `tunnelRoute`; **prod** `routes-manifest` rewrite ✓ |
+| Quiet CI | `silent: true`, `telemetry: false`, soft `errorHandler`; Step 6b `authToken` + `deleteSourcemapsAfterUpload` + `bundleSizeOptimizations` |
+| Noise | prod `logger.warn` no Sentry; ChunkLoad scrub; denyUrls; `enableLogs: false`; no consoleLoggingIntegration |
+| Gates | lint ✓ (4 pre-existing warn) · test **789** · invalidate **222** · build ✓ · Node **v24.21.0** |
+| WIP excluded | EmailPreferencesPage, Category/Supplier dialogs, ShippingManagement, unrelated docs |
+
+## REQ-0231 — Groq qwen3.8 chain (2026-09-09)
+
+| Check | Result |
+| ----- | ------ |
+| Chain | `gpt-oss-20b` → `gpt-oss-120b` → `qwen3.8-27b` |
+| Deprecated | llama + `qwen/qwen3.6-27b` remapped |
+| Smoke | login API ✓; admin lists 200; `/supplier` null-safe 200; register UI loads |
+| Turbo note | `POST /api/monitoring` 404 under `next dev --turbo`; production rewrite present |
 
 ---
 

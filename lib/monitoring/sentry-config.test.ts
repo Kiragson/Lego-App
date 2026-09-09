@@ -114,3 +114,31 @@ describe("isRadixPortalRemoveChildSentryEvent", () => {
     expect(scrubSentryEvent(event)).not.toBeNull();
   });
 });
+
+describe("isChunkLoadSentryEvent / scrub", () => {
+  it("scrubs ChunkLoadError events", () => {
+    const event = {
+      exception: {
+        values: [
+          {
+            type: "ChunkLoadError",
+            value: "Loading chunk 123 failed.",
+          },
+        ],
+      },
+    } as ErrorEvent;
+    expect(scrubSentryEvent(event)).toBeNull();
+  });
+});
+
+describe("client/server init options", () => {
+  it("keeps same-origin tunnel and disables Logs product", async () => {
+    const { getClientSentryInitOptions, SENTRY_TUNNEL_PATH } = await import(
+      "./sentry-config"
+    );
+    const opts = getClientSentryInitOptions();
+    expect(opts.tunnel).toBe(SENTRY_TUNNEL_PATH);
+    expect(opts.enableLogs).toBe(false);
+    expect(opts.denyUrls?.length).toBeGreaterThan(0);
+  });
+});

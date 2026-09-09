@@ -648,3 +648,21 @@ Format: `TIMESTAMP | AGENT | DECISION | RATIONALE | REQ-ID`
 
 2026-08-01T15:54:00Z | build-agent | Personal /support-tickets uses view created_by_me (not all) | Admin all = assigned; SSR was creator — stop leak after invalidate | REQ-0227
 2026-08-01T15:50:45+02:00 | agile-v-core | Resume and reconcile existing C2 control plane; do not re-bootstrap or change application code | Existing .agile-v has 24 skills and full runtime contracts; STATE was newer than PLAYBOOK/config/EVAL and Gate 2 lacked a durable pending checkpoint | REQ-0008,REQ-0009
+
+2026-09-09T14:18:00+02:00 | requirement-architect | Open REQ-0228 (Node 24.x engines) + REQ-0229 (safe dep upgrade / audit 0); halt for Gate 1 | Vercel Node 20 EOL after 2026-10-01; audit 40; tip reconciled to 3566b5e; exclude breaking majors (Prisma 7+, Tailwind 4, Zod 4, exceljs downgrade); prefer overrides for uuid/deepmerge-ts; park unrelated dirty UI WIP | REQ-0228,REQ-0229
+
+2026-09-09T14:18:00+02:00 | logic-gatekeeper | Policy: no `npm audit fix --force`; no mix of dialog/shipping WIP into deps commit; Guardrails.md ≠ Node pin | Force-fix downgrades exceljs; Guardrails already cover headers/bots in vercel.json | REQ-0228,REQ-0229
+
+2026-09-09T14:40:00+02:00 | build-agent | Engines 24.x + .nvmrc; compatible bumps + overrides → audit 0; allowScripts for prisma/sentry/esbuild | Vercel Node 20 EOL; exceljs uuid via override not downgrade | REQ-0228,REQ-0229
+
+2026-09-09T14:40:00+02:00 | build-agent | silent:true telemetry:false soft errorHandler; logger.warn no Sentry; ChunkLoad scrub; denyUrls; enableLogs false; drop consoleLoggingIntegration client+server | Quiet CI + adblock-safe tunnel already on /api/monitoring | REQ-0230
+
+2026-09-09T14:40:00+02:00 | red-team | Gates PASS on Node 24.21.0 | lint ✓ test 788 ✓ invalidate 222 ✓ build ✓ audit 0; date-stable invoice-event-date test | REQ-0228,REQ-0229,REQ-0230
+
+2026-09-09T14:55:00+02:00 | build-agent | Sentry Step 6b: authToken + deleteSourcemapsAfterUpload + bundleSizeOptimizations | Guide Redis_Sentry parity; tunnel rewrite in routes-manifest | REQ-0230
+
+2026-09-09T14:55:00+02:00 | build-agent | GROQ_MODEL_CHAIN gpt-oss-20b → gpt-oss-120b → qwen3.8; deprecate qwen3.6 | LLM_MODEL_SELECTION.md; llama email already covered | REQ-0231
+
+2026-09-09T14:55:00+02:00 | build-agent | SupplierPortal null-safe chart/list when dashboard missing | Admin hit /supplier 500 on dashboard!.monthlyRevenue | smoke
+
+2026-09-09T14:55:00+02:00 | red-team | verify-deep PASS WITH WARNINGS | audit 0; groq/sentry tests 25; tunnel prod rewrite ✓; turbo dev tunnel POST 404 expected; exclude UI WIP from commit | REQ-0230,REQ-0231

@@ -40,15 +40,25 @@ describe("resolveGroqModel", () => {
     expect(resolveGroqModelChain()).toEqual([...GROQ_MODEL_CHAIN]);
   });
 
-  it("uses explicit non-deprecated GROQ_MODEL env as single model", () => {
+  it("remaps deprecated qwen3.6 env to chain head", () => {
     process.env.GROQ_MODEL = "qwen/qwen3.6-27b";
-    expect(resolveGroqModel()).toBe("qwen/qwen3.6-27b");
-    expect(resolveGroqModelChain()).toEqual(["qwen/qwen3.6-27b"]);
+    expect(resolveGroqModel()).toBe(DEFAULT_GROQ_MODEL);
+    expect(resolveGroqModelChain()).toEqual([...GROQ_MODEL_CHAIN]);
+  });
+
+  it("uses explicit non-deprecated GROQ_MODEL env as single model", () => {
+    process.env.GROQ_MODEL = "qwen/qwen3.8-27b";
+    expect(resolveGroqModel()).toBe("qwen/qwen3.8-27b");
+    expect(resolveGroqModelChain()).toEqual(["qwen/qwen3.8-27b"]);
   });
 
   it("DEFAULT_GROQ_MODEL is chain head openai/gpt-oss-20b", () => {
     expect(DEFAULT_GROQ_MODEL).toBe("openai/gpt-oss-20b");
-    expect(GROQ_MODEL_CHAIN[0]).toBe("openai/gpt-oss-20b");
+    expect(GROQ_MODEL_CHAIN).toEqual([
+      "openai/gpt-oss-20b",
+      "openai/gpt-oss-120b",
+      "qwen/qwen3.8-27b",
+    ]);
   });
 });
 
@@ -100,7 +110,7 @@ describe("createGroqChatCompletion", () => {
   it("failovers to next model on 429", async () => {
     vi.mocked(fetch)
       .mockResolvedValueOnce(new Response("rate limited", { status: 429 }))
-      .mockResolvedValueOnce(successResponse("from-qwen"));
+      .mockResolvedValueOnce(successResponse("from-120b"));
 
     const result = await createGroqChatCompletion([
       { role: "user", content: "hi" },
@@ -109,7 +119,7 @@ describe("createGroqChatCompletion", () => {
     expect(fetch).toHaveBeenCalledTimes(2);
     expect(result.ok).toBe(true);
     if (result.ok) {
-      expect(result.data.choices[0]?.message.content).toBe("from-qwen");
+      expect(result.data.choices[0]?.message.content).toBe("from-120b");
     }
     const secondBody = JSON.parse(
       (vi.mocked(fetch).mock.calls[1]?.[1]?.body as string) ?? "{}",

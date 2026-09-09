@@ -5,6 +5,121 @@ Canonical REQ source. All artifacts link via `REQ-XXXX`. Current cycle: C2. Stat
 
 ---
 
+## REQ-0231 — Groq chain qwen3.8 (LLM_MODEL_SELECTION)
+
+| Field | Value |
+|-------|-------|
+| **Priority** | P1 |
+| **Risk** | R2 |
+| **Status** | done |
+| **Cycle** | C2 |
+| **Parent** | REQ-0018 |
+
+**Intent:** Align Groq failover with `docs/LLM_MODEL_SELECTION.md` before qwen3.6 decommission (2026-09-14). Llama already remapped (REQ-0018).
+
+**Acceptance criteria**
+
+- AC1: `GROQ_MODEL_CHAIN` = `openai/gpt-oss-20b` → `openai/gpt-oss-120b` → `qwen/qwen3.8-27b`
+- AC2: `qwen/qwen3.6-27b` in `DEPRECATED_GROQ_MODELS` (env remaps to chain)
+- AC3: Unit tests + `.env.example` / CLAUDE / walkthrough chain notes updated
+- AC4: `npm run test` (groq) PASS
+
+**Artifacts:** `lib/ai/groq.ts`, `lib/ai/groq.test.ts`
+
+---
+
+## REQ-0230 — Sentry same-origin tunnel harden (quiet CI + noise)
+
+| Field | Value |
+|-------|-------|
+| **Priority** | P1 |
+| **Risk** | R2 |
+| **Status** | done |
+| **Cycle** | C2 |
+| **Parent** | REQ-0009, REQ-0014, REQ-0017 |
+
+**Intent:** Keep browser envelopes on first-party `/api/monitoring` (ad-blocker safe in normal + incognito). Quiet Vercel/CI Sentry plugin logs. Stop false dashboard noise from prod `logger.warn`, ChunkLoadError, browser extensions, and console log forwarding — without breaking real error capture via the existing tunnel.
+
+**Acceptance criteria**
+
+- AC1: Client `tunnel` + `next.config` `tunnelRoute` remain synced on `SENTRY_TUNNEL_PATH` (`/api/monitoring`); no new App Router route required
+- AC2: `withSentryConfig`: `silent: true`, `telemetry: false`, soft `errorHandler` for source-map upload failures
+- AC3: Production `logger.warn` does **not** call Sentry; `logger.error` still captures (with `isExpectedClientError` skip)
+- AC4: ChunkLoadError / chunk-load messages ignored or scrubbed; `denyUrls` for extension schemes; `enableLogs: false`; no `consoleLoggingIntegration` on client
+- AC5: Unit tests updated; lint + test PASS
+
+**Artifacts:** `next.config.ts`, `lib/logger.ts`, `lib/monitoring/sentry-config.ts`, `instrumentation-client.ts`, related tests
+
+---
+
+## REQ-0228 — Node.js 24.x engines (Vercel runtime)
+
+| Field | Value |
+|-------|-------|
+| **Priority** | P0 |
+| **Risk** | R2 |
+| **Status** | done |
+| **Cycle** | C2 |
+| **Parent** | REQ-0212 (Vercel deploy), REQ-0009 (release path) |
+
+**Intent:** Vercel stops allowing new builds on Node.js 20 after 2026-10-01. Pin the project to Node.js `24.x` so dashboard settings cannot leave the app on EOL 20.x. Align local docs/`@types/node` with that runtime.
+
+**Acceptance criteria**
+
+- AC1: `package.json` includes `"engines": { "node": "24.x" }` (overrides Vercel project Node setting)
+- AC2: `@types/node` bumped to a Node 24-compatible range (e.g. `^24`); README Node requirement updated from “20+” to **24.x**
+- AC3: Optional pin files if present/needed: `.nvmrc` and/or `.node-version` = `24` (only if we add them; not required if engines alone satisfy Vercel)
+- AC4: No app-code behavior change; `npm run lint` + `npm run build` PASS on Node 24 locally (or CI-equivalent)
+- AC5: Out of scope for this REQ alone: dependency CVE remediation (see REQ-0229); Vercel dashboard Bot Protection remains manual per `docs/VERCEL_PRODUCTION_GUARDRAILS.md`
+
+**Artifacts:** `package.json`, `package-lock.json`, `README.md` (engines section), optionally `.nvmrc`
+
+**Notes:** `docs/VERCEL_PRODUCTION_GUARDRAILS.md` covers bots/headers/robots — already largely applied in `vercel.json` / `next.config`. This REQ is the separate platform Node EOL notice.
+
+---
+
+## REQ-0229 — Safe dependency upgrade + npm audit zero
+
+| Field | Value |
+|-------|-------|
+| **Priority** | P0 |
+| **Risk** | R3 |
+| **Status** | done |
+| **Cycle** | C2 |
+| **Parent** | REQ-0228, REQ-0212 |
+
+**Intent:** Clear the current `npm audit` report (**40** issues: 3 critical / 17 high / 17 moderate / 3 low) by upgrading to the latest **compatible** stable versions and targeted `overrides` for transitive CVEs — without breaking Next 16 / React 19 / Prisma+Mongo / TanStack / auth / payments. Do **not** take unsafe major jumps that rewrite APIs.
+
+**Baseline (2026-09-09, tip `3566b5e` + local install):** audit total 40; local Node `v22.22.3`; no `engines` field today; `@types/node` is `^20`.
+
+**In-scope upgrade policy (compatible)**
+
+| Layer | Action |
+|-------|--------|
+| Direct same-major / security | `next`+`eslint-config-next` → latest 16.x; `axios`, `js-cookie`, `postcss`, `@sentry/nextjs`, TanStack 5.x, Radix patch/minor, `next-auth` → latest `5.0.0-beta.x` that clears `@auth/core` critical, `vitest` latest 4.x, `react`/`react-dom` latest 19.2.x |
+| Transitive via `overrides` | Prefer overrides over `--force` majors (e.g. `uuid` ≥11.1.1 under `exceljs`, `deepmerge-ts` ≥8 under Prisma 6, `brace-expansion` / `nanoid` / `form-data` / etc. as audit requires) |
+| Install hygiene | Address npm `allowScripts` / install-scripts warnings for Prisma engines, sharp, esbuild, `@sentry/cli` so postinstall remains reliable |
+
+**Explicitly out of scope (defer — breaking majors)**
+
+- Prisma 7/8, Tailwind 4, Zod 4, `@tanstack/react-table` 9, `lucide-react` 1.x, Stripe SDK 22, `@hookform/resolvers` 5, `react-day-picker` 10, `mongodb` driver 5–7 (used in register route — bump only if audit forces and tests pass; prefer minor/patch within 4.x first)
+- `npm audit fix --force` that downgrades `exceljs` to 3.4.0
+- Mixing unrelated dirty WIP (`EmailPreferencesPage`, `CategoryDialog`, `SupplierDialog`, `ShippingManagement`) into the dependency commit
+
+**Acceptance criteria**
+
+- AC1: `npm audit` reports **0** vulnerabilities after install (or documented residual with Human Gate if an advisory has no compatible fix — default goal is 0)
+- AC2: `npm outdated` reviewed; only compatible bumps applied; lockfile regenerated cleanly
+- AC3: Gates PASS independently: `npm run lint`, `npm run test`, `npm run test:invalidate`, `npm run build`
+- AC4: No TanStack invalidation registry / SSR policy / schema changes unless a bumped package forces a one-line type fix
+- AC5: DECISION_LOG records override choices + any deferred majors; BUILD_MANIFEST lists touched package versions
+
+**Artifacts:** `package.json` (`dependencies`/`devDependencies`/`overrides`/`engines`), `package-lock.json`, Agile V write-through
+
+**Risk note:** R3 because transitive overrides can mask peer expectations; Red Team must re-run full gates; smoke auth (next-auth) + export (exceljs) + image (sharp) after build.
+
+---
+
 ## REQ-0227 — Personal support-ticket list scope (admin)
 
 | Field | Value |

@@ -344,7 +344,7 @@ export default function SupplierPortalPage({
               >
                 <ResponsiveChartContainer>
                   <AreaChart
-                    data={dashboard!.monthlyRevenue}
+                    data={dashboard?.monthlyRevenue ?? []}
                     margin={{
                       top: CHART_LABEL_TOP_MARGIN,
                       right: 30,
@@ -368,7 +368,7 @@ export default function SupplierPortalPage({
                       fill="#10b98133"
                       dot={{ r: 4, fill: "#10b981", strokeWidth: 0 }}
                       label={createChartDotLabelRenderer(
-                        dashboard!.monthlyRevenue.length,
+                        dashboard?.monthlyRevenue?.length ?? 0,
                       )}
                     />
                   </AreaChart>
@@ -412,7 +412,7 @@ export default function SupplierPortalPage({
                     </p>
                   ) : (
                     <ul className={CARD_LIST_DIVIDE_CLASS}>
-                      {dashboard!.recentOrders.slice(0, 5).map((order) => {
+                      {dashboard?.recentOrders.slice(0, 5).map((order) => {
                         const productLabel = order.productPreview?.trim() || null;
                         const buyerLabel =
                           order.placedByName?.trim() ||
@@ -603,7 +603,7 @@ export default function SupplierPortalPage({
                           </TableRow>
                         </TableHeader>
                         <TableBody>
-                          {dashboard!.lowStockProducts
+                          {dashboard?.lowStockProducts
                             .slice(0, 5)
                             .map((product) => (
                               <TableRow key={product.id}>

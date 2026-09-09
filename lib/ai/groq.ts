@@ -1,7 +1,8 @@
 /**
  * Groq API client (OpenAI-compatible).
  * Fallback when OpenRouter billing/rate-limit/upstream fails.
- * Fast-first model chain (REQ-0018) — llama-3.3 deprecated Aug 16, 2026.
+ * Chain per docs/LLM_MODEL_SELECTION.md (REQ-0231): gpt-oss-20b → gpt-oss-120b → qwen3.8.
+ * Llama 3.3 / qwen3.6 remapped when still present in GROQ_MODEL env.
  * Docs: https://console.groq.com/docs/openai
  */
 
@@ -15,20 +16,21 @@ import type {
 
 const GROQ_BASE_URL = "https://api.groq.com/openai/v1";
 
-/** Fast-first failover order when GROQ_MODEL env is unset. */
+/** Production-first failover when GROQ_MODEL env is unset (LLM_MODEL_SELECTION.md). */
 export const GROQ_MODEL_CHAIN = [
   "openai/gpt-oss-20b",
-  "qwen/qwen3.6-27b",
   "openai/gpt-oss-120b",
+  "qwen/qwen3.8-27b",
 ] as const;
 
 /** Default chain head — no Vercel env required. */
 export const DEFAULT_GROQ_MODEL = GROQ_MODEL_CHAIN[0];
 
-/** Groq shutdown Aug 16, 2026 — remap to chain if still in env. */
+/** Deprecated Groq ids — remap to chain if still in env. */
 const DEPRECATED_GROQ_MODELS = new Set([
   "llama-3.3-70b-versatile",
   "llama-3.1-8b-instant",
+  "qwen/qwen3.6-27b",
 ]);
 
 const RETRIABLE_HTTP_STATUSES = new Set([408, 429, 502, 503, 504]);

@@ -111,16 +111,8 @@ const createLogger = (level: LogLevel): (...args: unknown[]) => void => {
       };
     }
     if (level === "warn") {
-      return (...args: unknown[]) => {
-        if (args.length > 0) {
-          const message = String(args[0]);
-          const context =
-            args.length > 1 && typeof args[1] === "object"
-              ? (args[1] as Record<string, unknown>)
-              : undefined;
-          captureMessage(message, "warning", context);
-        }
-      };
+      // Expected ops noise (Zod 4xx, OAuth mismatch, etc.) — never Sentry (REQ-0230)
+      return () => {};
     }
     // No-op for other levels in production
     return () => {};

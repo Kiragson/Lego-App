@@ -645,3 +645,10 @@
 
 | ART-0227a | REQ-0227 | SupportTicketsPageContent created_by_me | separate key from admin all |
 | TC-0227 | REQ-0227 | lint + tsc + invalidate | PASS |
+
+| ART-0228a | REQ-0228 | package.json engines.node `24.x` | Vercel Node pin |
+| ART-0228b | REQ-0228 | `.nvmrc` = 24; `@types/node` ^24; README | local/docs align |
+| ART-0229a | REQ-0229 | package.json deps/overrides/allowScripts + lockfile | audit 0 |
+| ART-0230a | REQ-0230 | next.config silent/telemetry/errorHandler + tunnelRoute | quiet CI |
+| ART-0230b | REQ-0230 | sentry-config scrub/denyUrls/enableLogs; logger.warn no-op; client+server init | noise harden |
+| TC-0228-0230 | REQ-0228..0230 | lint ✓ test 788 ✓ invalidate 222 ✓ build ✓ audit 0 | PASS (Node 24.21.0) |

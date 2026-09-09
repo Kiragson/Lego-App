@@ -18,7 +18,6 @@ if (isSentryEnabled()) {
         blockAllMedia: true,
       }),
       Sentry.browserTracingIntegration(),
-      Sentry.consoleLoggingIntegration({ levels: ["warn", "error"] }),
     ],
   });
 }

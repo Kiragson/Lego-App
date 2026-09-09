@@ -44,14 +44,24 @@ const nextConfig: NextConfig = {
 export default withSentryConfig(nextConfig, {
   org: process.env.SENTRY_ORG ?? "arnob-mahmuds-org",
   project: process.env.SENTRY_PROJECT ?? "stock-inventory",
-  silent: !process.env.CI,
+  authToken: process.env.SENTRY_AUTH_TOKEN,
+  // Quiet local + Vercel/CI plugin output (REQ-0230 / guide Step 6b)
+  silent: true,
+  telemetry: false,
   widenClientFileUpload: true,
+  // Soft-fail source-map upload so missing SENTRY_AUTH_TOKEN does not fail builds
+  errorHandler: (err) => {
+    console.warn("[sentry] build plugin:", err.message);
+  },
   // First-party tunnel — must match `tunnel` in instrumentation-client.ts (SENTRY_TUNNEL_PATH)
   tunnelRoute: SENTRY_TUNNEL_PATH,
+  sourcemaps: {
+    deleteSourcemapsAfterUpload: true,
+  },
+  bundleSizeOptimizations: {
+    excludeDebugStatements: true,
+  },
   webpack: {
     automaticVercelMonitors: true,
-    treeshake: {
-      removeDebugLogging: true,
-    },
   },
 });

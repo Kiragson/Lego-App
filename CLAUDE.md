@@ -136,7 +136,7 @@ All user-facing POST/PUT JSON bodies use `safeParse` + `logger.warn` on fail. Ne
 | OpenRouter 402 (cases 2–4) | `lib/ai/create-chat-completion.ts` — OpenRouter first, Groq fallback; insights route → `serviceUnavailableResponse` (no Sentry); client billing toast only when both fail |
 | Hydration `/` (case 6) | `force-dynamic` + SSR in `app/page.tsx` (no route Suspense); `initialOAuthSuccess` from server; `CategoryList` + `DeferredSelectGate` |
 
-**AI insights:** `lib/ai/create-chat-completion.ts` (`createChatCompletion`, `isLlmConfigured`). Env: `OPENROUTER_API_KEY`, optional `GROQ_API_KEY` + `GROQ_MODEL`. Groq chain in `lib/ai/groq.ts`: `gpt-oss-20b` → `qwen3.6-27b` → `gpt-oss-120b` (REQ-0018; llama deprecated). Routes: `POST /api/ai/insights`, `POST /api/forecasting`.
+**AI insights:** `lib/ai/create-chat-completion.ts` (`createChatCompletion`, `isLlmConfigured`). Env: `OPENROUTER_API_KEY`, optional `GROQ_API_KEY` + `GROQ_MODEL`. Groq chain in `lib/ai/groq.ts`: `gpt-oss-20b` → `gpt-oss-120b` → `qwen3.8-27b` (REQ-0231; llama + qwen3.6 remapped). Routes: `POST /api/ai/insights`, `POST /api/forecasting`.
 
 ## Home route `/` (SSR-first, 2026-05-19)
 
@@ -1593,3 +1593,13 @@ Gates: lint ✓ test **498** ✓ invalidate **208** ✓ build ✓. **No invalida
 - Do not delete working code without reason
 - Sentry DSN never hardcoded — use env only
 - No `.md` summary files unless user asks; update this file + walkthrough when architecture changes
+
+<!-- BEGIN:nextjs-agent-rules -->
+
+# This is NOT the Next.js you know
+
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
+
+This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
+
+<!-- END:nextjs-agent-rules -->

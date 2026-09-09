@@ -49,4 +49,11 @@ describe("logger production 4xx guard", () => {
     logger.error("Invoice creation error:", conflict);
     expect(captureException).not.toHaveBeenCalled();
   });
+
+  it("does not send production warn to Sentry", async () => {
+    const { logger } = await import("@/lib/logger");
+    logger.warn("Validation failed:", { field: "email" });
+    expect(captureMessage).not.toHaveBeenCalled();
+    expect(captureException).not.toHaveBeenCalled();
+  });
 });
