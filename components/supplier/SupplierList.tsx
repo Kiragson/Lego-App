@@ -23,9 +23,9 @@ import { PageSectionHeader } from "@/components/shared";
 import { Supplier } from "@/types";
 import type { SupplierForHome } from "@/lib/server/home-data";
 import type { DashboardStats } from "@/types";
+import { formatStableCurrency } from "@/lib/format";
 
-const formatCurrency = (value: number) =>
-  `$${value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+const formatCurrency = formatStableCurrency;
 
 /**
  * Dynamic import for SupplierTable to enable code splitting

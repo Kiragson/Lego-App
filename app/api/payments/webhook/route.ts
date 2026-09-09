@@ -15,6 +15,7 @@ import {
 } from "@/lib/stripe";
 import { prisma } from "@/prisma/client";
 import { confirmCheckoutSessionById } from "@/lib/payments/confirm-checkout-session";
+import { shouldThrowOnConfirmFailure } from "@/lib/payments/webhook-confirm-policy";
 import { invalidateOnOrderChange } from "@/lib/cache";
 
 export const runtime = "nodejs";
@@ -61,11 +62,17 @@ export async function POST(request: NextRequest) {
         if (session.id) {
           const result = await confirmCheckoutSessionById(session.id);
           if (!result.ok) {
-            logger.warn("Webhook confirm-session failed", {
+            // REQ-0232 — ack non-retryable business failures (e.g. Unknown checkout type)
+            // so Stripe does not retry → Sentry High storm
+            logger.warn("Webhook confirm-session failed (acked)", {
               error: result.error,
               sessionId: session.id,
+              metadata: session.metadata,
             });
-            throw new Error(result.error ?? "confirm-session failed");
+            if (shouldThrowOnConfirmFailure(result)) {
+              throw new Error(result.error ?? "confirm-session failed");
+            }
+            break;
           }
           logger.info(
             `Checkout completed synced order=${result.orderId} status=${result.orderStatus} pay=${result.paymentStatus} alreadyApplied=${result.alreadyApplied}`,

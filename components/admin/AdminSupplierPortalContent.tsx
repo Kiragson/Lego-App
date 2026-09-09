@@ -53,6 +53,7 @@ import {
   AdminEmbedDataTable,
   type AdminEmbedColumn,
 } from "@/components/admin/AdminEmbedDataTable";
+import { formatStableCurrency } from "@/lib/format";
 
 export type AdminSupplierPortalContentProps = {
   initialStats?: SupplierPortalStats | null;
@@ -113,7 +114,7 @@ export default function AdminSupplierPortalContent({
         header: "Inventory Value",
         headerClassName: "text-right",
         cellClassName: "text-right text-gray-700 dark:text-white",
-        render: (s) => `$${s.totalValue.toLocaleString()}`,
+        render: (s) => formatStableCurrency(s.totalValue),
       },
     ],
     [],
@@ -166,7 +167,7 @@ export default function AdminSupplierPortalContent({
           />
           <AnalyticsCard
             title="Inventory Value"
-            value={`$${(stats?.counts?.totalValue ?? 0).toLocaleString()}`}
+            value={formatStableCurrency(stats?.counts?.totalValue ?? 0)}
             icon={DollarSign}
             description="Total product value"
             variant="amber"
@@ -292,7 +293,7 @@ export default function AdminSupplierPortalContent({
                       <div className="flex flex-col items-end gap-1 flex-shrink-0">
                         <ProductStockStatusBadge status={p.status} />
                         <span className="text-xs font-normal text-gray-700 dark:text-white">
-                          ${p.price.toLocaleString()}
+                          {formatStableCurrency(p.price)}
                         </span>
                       </div>
                     </li>
@@ -455,7 +456,7 @@ export default function AdminSupplierPortalContent({
                         paymentStatus={o.paymentStatus}
                         trailing={
                           <span className="text-xs font-normal text-gray-700 dark:text-white">
-                            ${o.total.toLocaleString()}
+                            {formatStableCurrency(o.total)}
                           </span>
                         }
                       />

@@ -111,6 +111,7 @@ import {
 import {
   DIALOG_NATIVE_DATE_HIDE_INDICATOR,
 } from "@/components/shared/dialog-form-field";
+import { formatStableCurrency } from "@/lib/format";
 
 /** Date range inputs — violet hue ring; REQ-0223 hide native indicator + one Lucide icon. */
 const BUSINESS_INSIGHT_DATE_INPUT_CLASS = cn(
@@ -603,7 +604,7 @@ export default function BusinessInsightPage({
         {
           Section: "Key Metrics",
           Metric: "Total Value",
-          Value: `$${analyticsData.totalValue.toLocaleString()}`,
+          Value: formatStableCurrency(analyticsData.totalValue),
           "Additional Info": "",
         },
         {
@@ -627,7 +628,7 @@ export default function BusinessInsightPage({
         {
           Section: "Key Metrics",
           Metric: "Average Price",
-          Value: `$${analyticsData.averagePrice.toFixed(2)}`,
+          Value: formatStableCurrency(analyticsData.averagePrice),
           "Additional Info": "",
         },
         {
@@ -639,7 +640,7 @@ export default function BusinessInsightPage({
         {
           Section: "Key Metrics",
           Metric: "Value Density",
-          Value: `$${analyticsData.valueDensity.toFixed(2)}`,
+          Value: formatStableCurrency(analyticsData.valueDensity),
           "Additional Info": "",
         },
         {
@@ -657,7 +658,7 @@ export default function BusinessInsightPage({
           Section: "Category Distribution",
           Metric: cat.name,
           Value: cat.value.toString(),
-          "Additional Info": `Count: ${cat.count}, Value: $${cat.totalValue.toLocaleString()}`,
+          "Additional Info": `Count: ${cat.count}, Value: ${formatStableCurrency(cat.totalValue)}`,
         })),
 
         // Empty row separator
@@ -689,7 +690,7 @@ export default function BusinessInsightPage({
         ...analyticsData.topProducts.map((product, index) => ({
           Section: "Top Products",
           Metric: product.name,
-          Value: `$${product.value.toLocaleString()}`,
+          Value: formatStableCurrency(product.value),
           "Additional Info": `Quantity: ${product.quantity}`,
         })),
 
@@ -748,7 +749,7 @@ export default function BusinessInsightPage({
         { Metric: "Total Products", Value: analyticsData.totalProducts },
         {
           Metric: "Total Value",
-          Value: `$${analyticsData.totalValue.toLocaleString()}`,
+          Value: formatStableCurrency(analyticsData.totalValue),
         },
         { Metric: "Low Stock Items", Value: analyticsData.lowStockItems },
         { Metric: "Out of Stock Items", Value: analyticsData.outOfStockItems },
@@ -758,7 +759,7 @@ export default function BusinessInsightPage({
         },
         {
           Metric: "Average Price",
-          Value: `$${analyticsData.averagePrice.toFixed(2)}`,
+          Value: formatStableCurrency(analyticsData.averagePrice),
         },
         {
           Metric: "Stock Utilization",
@@ -766,7 +767,7 @@ export default function BusinessInsightPage({
         },
         {
           Metric: "Value Density",
-          Value: `$${analyticsData.valueDensity.toFixed(2)}`,
+          Value: formatStableCurrency(analyticsData.valueDensity),
         },
         {
           Metric: "Stock Coverage",
@@ -810,7 +811,7 @@ export default function BusinessInsightPage({
   const buildAiSummary = useCallback(() => {
     const parts = [
       `Total products: ${analyticsData.totalProducts}.`,
-      `Total inventory value: $${analyticsData.totalValue.toLocaleString()}.`,
+      `Total inventory value: ${formatStableCurrency(analyticsData.totalValue)}.`,
       `Low stock items (qty ≤ 20): ${analyticsData.lowStockItems}.`,
       `Out of stock: ${analyticsData.outOfStockItems}.`,
       `Stock utilization: ${analyticsData.stockUtilization.toFixed(1)}%.`,
@@ -1077,7 +1078,7 @@ export default function BusinessInsightPage({
             />
             <AnalyticsCard
               title="Total Value"
-              value={`$${analyticsData.totalValue.toLocaleString()}`}
+              value={formatStableCurrency(analyticsData.totalValue)}
               icon={DollarSign}
               variant="emerald"
               description="Total inventory value"
@@ -1248,7 +1249,7 @@ export default function BusinessInsightPage({
                               <Tooltip
                                 formatter={(value) => [
                                   value != null
-                                    ? `$${Number(value).toLocaleString()}`
+                                    ? formatStableCurrency(Number(value))
                                     : "$0",
                                   "Revenue",
                                 ]}
@@ -1417,7 +1418,7 @@ export default function BusinessInsightPage({
                             <Tooltip
                               formatter={(value) => [
                                 value != null
-                                  ? `$${Number(value).toLocaleString()}`
+                                  ? formatStableCurrency(Number(value))
                                   : "$0",
                                 "Value",
                               ]}
@@ -1459,7 +1460,7 @@ export default function BusinessInsightPage({
                             <Tooltip
                               formatter={(value) => [
                                 value != null
-                                  ? `$${Number(value).toLocaleString()}`
+                                  ? formatStableCurrency(Number(value))
                                   : "$0",
                                 "Value",
                               ]}
@@ -1505,7 +1506,7 @@ export default function BusinessInsightPage({
                             <Tooltip
                               formatter={(value) => [
                                 value
-                                  ? `$${Number(value).toLocaleString()}`
+                                  ? formatStableCurrency(Number(value))
                                   : "$0",
                                 "Value",
                               ]}
@@ -1702,7 +1703,7 @@ export default function BusinessInsightPage({
                     {dataLoading ? (
                       <DataSlotPulse variant="currency" />
                     ) : (
-                      `$${analyticsData.averagePrice.toFixed(2)}`
+                      formatStableCurrency(analyticsData.averagePrice)
                     )}
                   </span>
                 </div>
@@ -1776,7 +1777,7 @@ export default function BusinessInsightPage({
                     {dataLoading ? (
                       <DataSlotPulse variant="currency" />
                     ) : (
-                      `$${analyticsData.valueDensity.toFixed(2)} per product`
+                      `${formatStableCurrency(analyticsData.valueDensity)} per product`
                     )}
                   </span>
                 </div>

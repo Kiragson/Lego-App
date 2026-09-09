@@ -131,6 +131,53 @@ describe("isChunkLoadSentryEvent / scrub", () => {
   });
 });
 
+describe("isWalletExtensionSentryEvent / scrub (REQ-0234)", () => {
+  it("scrubs MetaMask connect failures", () => {
+    const event = {
+      exception: {
+        values: [
+          {
+            type: "Error",
+            value: "Failed to connect to MetaMask",
+          },
+        ],
+      },
+    } as ErrorEvent;
+    expect(scrubSentryEvent(event)).toBeNull();
+  });
+
+  it("scrubs M_ID property access errors", () => {
+    const event = {
+      exception: {
+        values: [
+          {
+            type: "TypeError",
+            value: "Cannot read properties of undefined (reading 'M_ID')",
+          },
+        ],
+      },
+    } as ErrorEvent;
+    expect(scrubSentryEvent(event)).toBeNull();
+  });
+
+  it("scrubs inpage.js stack frames", () => {
+    const event = {
+      exception: {
+        values: [
+          {
+            type: "Error",
+            value: "something",
+            stacktrace: {
+              frames: [{ filename: "scripts/inpage.js", lineno: 1 }],
+            },
+          },
+        ],
+      },
+    } as ErrorEvent;
+    expect(scrubSentryEvent(event)).toBeNull();
+  });
+});
+
 describe("client/server init options", () => {
   it("keeps same-origin tunnel and disables Logs product", async () => {
     const { getClientSentryInitOptions, SENTRY_TUNNEL_PATH } = await import(

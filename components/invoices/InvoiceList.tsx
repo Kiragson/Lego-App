@@ -61,9 +61,9 @@ import {
   isDefaultInvoiceListFilters,
 } from "@/lib/invoices/invoice-list-filters";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
+import { formatStableCurrency } from "@/lib/format";
 
-const formatCurrency = (value: number) =>
-  `$${value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+const formatCurrency = formatStableCurrency;
 
 const InvoiceTable = dynamic(
   () =>

@@ -26,12 +26,9 @@ import { buildStoreOrderStatusBadges } from "@/lib/ui/store-order-status-badges"
 import { buildStoreInvoiceStatusBadges } from "@/lib/ui/store-invoice-status-badges";
 import { useAuth } from "@/contexts";
 import type { DashboardStats } from "@/types";
+import { formatStableCurrency } from "@/lib/format";
 
-const formatCurrency = (value: number) =>
-  `$${value.toLocaleString(undefined, {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  })}`;
+const formatCurrency = formatStableCurrency;
 
 export type StatisticsSectionProps = {
   /** SSR-passed dashboard stats for first-render hydration */

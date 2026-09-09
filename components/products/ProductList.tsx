@@ -23,6 +23,7 @@ import type { Product } from "@/types";
 import type { ProductForHome } from "@/lib/server/home-data";
 import type { DashboardStats, SupplierPortalDashboard } from "@/types";
 import { APP_SHELL_WIDTH_CLASS } from "@/lib/ui/shell-layout-styles";
+import { formatStableCurrency } from "@/lib/format";
 
 const ProductTable = dynamic(
   () =>
@@ -132,8 +133,7 @@ const ProductList = React.memo(function ProductList({
 
   // Removed debug log - use React DevTools for debugging
 
-  const formatCurrency = (value: number) =>
-    `$${value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  const formatCurrency = formatStableCurrency;
 
   const nonCancelledSupplierOrders = Math.max(
     0,

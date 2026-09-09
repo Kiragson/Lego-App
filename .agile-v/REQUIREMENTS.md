@@ -5,6 +5,187 @@ Canonical REQ source. All artifacts link via `REQ-XXXX`. Current cycle: C2. Stat
 
 ---
 
+## REQ-0239 — BI averagePrice/valueDensity currency parity
+
+| Field | Value |
+|-------|-------|
+| **Priority** | P2 |
+| **Risk** | R1 |
+| **Status** | done |
+| **Cycle** | C2 |
+| **Parent** | REQ-0238, REQ-0009 |
+
+**Intent:** Finish BI money display parity — replace residual `$…toFixed(2)` for `averagePrice` / `valueDensity` with `formatStableCurrency`. Not a `toLocaleString` hydration class, but closes verify-deep leftover.
+
+**Acceptance criteria**
+
+- AC1: Six averagePrice/valueDensity sites use `formatStableCurrency`
+- AC2: Non-money `toFixed` and count `toLocaleString` unchanged
+- AC3: lint + test + invalidate + build PASS
+- AC4: `docs/SENTRY_ERRORS.md` lists 0239 closed; OPEN-1/2/4 remain
+
+**Artifacts:** `BusinessInsightPage.tsx` only
+
+---
+
+## REQ-0238 — Admin/BI currency hydration sweep (OPEN-3)
+
+| Field | Value |
+|-------|-------|
+| **Priority** | P1 |
+| **Risk** | R1 |
+| **Status** | done |
+| **Cycle** | C2 |
+| **Parent** | REQ-0237, REQ-0009 |
+
+**Intent:** Close SENTRY OPEN-3 — replace remaining bare money `toLocaleString()` on admin portals and Business Insights with `formatStableCurrency`. Leave count/timestamp `toLocaleString` alone.
+
+**Acceptance criteria**
+
+- AC1: Listed admin/BI surfaces use `formatStableCurrency` for USD display
+- AC2: No `` `$${…toLocaleString()}` `` money patterns in those files
+- AC3: lint + test + invalidate + build PASS
+- AC4: `docs/SENTRY_ERRORS.md` OPEN-3 closed; OPEN-1/2/4 unchanged
+
+**Artifacts:** AdminClient/SupplierPortalContent, AdminUserManagementDetailContent, BusinessInsightPage, BusinessInsightsWarehouseSection
+
+---
+
+## REQ-0237 — Hydration-safe currency (locale mismatch on `/`)
+
+| Field | Value |
+|-------|-------|
+| **Priority** | P1 |
+| **Risk** | R1 |
+| **Status** | done |
+| **Cycle** | C2 |
+| **Parent** | REQ-0020, REQ-0235, REQ-0009 |
+
+**Intent:** Replace `toLocaleString(undefined)` currency helpers on home / first-paint lists and role portals with `formatStableCurrency` so SSR (en-US) matches client when browser locale is `vi` (etc.). Closes deterministic Sentry “Hydration failed” on `/` without blanket-scrubbing hydration errors.
+
+**Acceptance criteria**
+
+- AC1: No `toLocaleString(undefined` currency formatting in home/list/portal/dialog surfaces listed in artifacts
+- AC2: All use `formatStableCurrency` from `@/lib/format`
+- AC3: lint + test + invalidate + build PASS; bounded multi-role smoke PASS
+- AC4: Do **not** scrub all hydration events in Sentry; Gate 2 still `gate2-sentry-24h`
+
+**Artifacts:** StatisticsSection, Product/Category/Supplier/Order/Invoice lists, Client/Supplier portals, InvoiceDialog, OrderPickerCommand
+
+---
+
+## REQ-0236 — Server-authoritative order fees (Finding 2)
+
+| Field | Value |
+|-------|-------|
+| **Priority** | P0 |
+| **Risk** | R2 |
+| **Status** | done |
+| **Cycle** | C2 |
+| **Parent** | REQ-0233 |
+
+**Intent:** Stop trusting client `tax` / `shipping` / `discount` on order create. Recompute from DB line subtotal using the same tier rules as the order dialog (7% tax, 10–50% discount, $4.99 ship / free on &lt;$100 tier). Closes residual `$0` unpaid + stock-reserve when client sends `discount === subtotal` with zero fees.
+
+**Acceptance criteria**
+
+- AC1: Shared pure `computeOrderFeesFromSubtotal` used by UI + `createOrder`
+- AC2: `createOrder` ignores client fee fields; persists server-computed fees; `total > 0` for `subtotal > 0`
+- AC3: `createOrderSchema` / `CreateOrderInput` no longer accept fee fields
+- AC4: Unit tier matrix + smoke (malicious body) PASS; no TanStack invalidation registry change
+
+**Artifacts:** `lib/orders/order-fees.ts`, `prisma/order.ts`, `lib/validations/order.ts`, `components/orders/OrderDialog.tsx`
+
+---
+
+## REQ-0232 — Stripe webhook ack unknown checkout type
+
+| Field | Value |
+|-------|-------|
+| **Priority** | P0 |
+| **Risk** | R2 |
+| **Status** | done |
+| **Cycle** | C2 |
+| **Parent** | REQ-0209, REQ-0009 |
+
+**Intent:** Stop Stripe retry storms / Sentry High when `checkout.session.completed` has missing or non-app `metadata.type` (`Unknown checkout type`). Ack `200 { received: true }` for non-retryable confirm failures; keep `500` only when confirm throws (transient).
+
+**Acceptance criteria**
+
+- AC1: Webhook does not throw on `Unknown checkout type` (or other `!result.ok` business errors)
+- AC2: Structured `logger.warn` includes session id + error; response still `{ received: true }`
+- AC3: Thrown errors from confirm/DB still yield 500
+- AC4: Unit tests for ack policy PASS
+
+**Artifacts:** `app/api/payments/webhook/route.ts`, `lib/payments/webhook-confirm-policy.ts`
+
+---
+
+## REQ-0233 — Server-side order discount cap
+
+| Field | Value |
+|-------|-------|
+| **Priority** | P0 |
+| **Risk** | R2 |
+| **Status** | done |
+| **Cycle** | C2 |
+| **Parent** | REQ-0013, REQ-0152 |
+
+**Intent:** Reject client-supplied `discount` greater than computed line subtotal so $0/negative totals cannot reserve stock (UI tier fees remain display-only).
+
+**Acceptance criteria**
+
+- AC1: `createOrder` rejects `discount > subtotal` with clear error
+- AC2: Order POST maps that error to **400**
+- AC3: Unit tests for money validation PASS
+- AC4: No TanStack invalidation registry change
+
+**Artifacts:** `lib/orders/order-money-validation.ts`, `prisma/order.ts`, `app/api/orders/route.ts`
+
+---
+
+## REQ-0234 — Sentry scrub wallet/extension noise
+
+| Field | Value |
+|-------|-------|
+| **Priority** | P1 |
+| **Risk** | R1 |
+| **Status** | done |
+| **Cycle** | C2 |
+| **Parent** | REQ-0230, REQ-0009 |
+
+**Intent:** Drop MetaMask / `M_ID` / `inpage.js` client exceptions from Sentry (extension injectors on `/login`), without changing auth app logic.
+
+**Acceptance criteria**
+
+- AC1: `ignoreErrors` / `denyUrls` / `scrubSentryEvent` cover MetaMask, `M_ID`, `inpage.js`
+- AC2: Unit tests scrub those events
+- AC3: Aug-2026 triage table in `docs/SENTRY_ERRORS.md`
+
+**Artifacts:** `lib/monitoring/sentry-config.ts`, `lib/monitoring/sentry-config.test.ts`, `docs/SENTRY_ERRORS.md`
+
+---
+
+## REQ-0235 — Hydration / hooks observe (Replay gate)
+
+| Field | Value |
+|-------|-------|
+| **Priority** | P2 |
+| **Risk** | R1 |
+| **Status** | done |
+| **Cycle** | C2 |
+| **Parent** | REQ-0009, REQ-0004 |
+
+**Intent:** Do not speculative-rewrite home UI for residual hydration / hooks-after-removeChild. Post-deploy: sample Sentry Replay on `/` (non-`en` locale); scrub only if translate/extension; new REQ only if app-owned mismatch.
+
+**Acceptance criteria**
+
+- AC1: Decision logged in DECISION_LOG + VALIDATION_SUMMARY (observe / no code change this wave)
+- AC2: Gate 2 watch remains `gate2-sentry-24h`
+
+**Artifacts:** `.agile-v/DECISION_LOG.md`, `.agile-v/VALIDATION_SUMMARY.md`
+
+---
+
 ## REQ-0231 — Groq chain qwen3.8 (LLM_MODEL_SELECTION)
 
 | Field | Value |

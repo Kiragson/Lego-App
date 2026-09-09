@@ -16,6 +16,8 @@ import {
   reservePendingOrderLines,
 } from "@/lib/products/order-stock-reservation";
 import { getOrderLineCatalogAvailable } from "@/lib/orders/order-line-stock-validation";
+import { assertDiscountWithinSubtotal } from "@/lib/orders/order-money-validation";
+import { computeOrderFeesFromSubtotal } from "@/lib/orders/order-fees";
 import {
   productRequiresWarehousePick,
   resolveWarehouseName,
@@ -171,11 +173,13 @@ export async function createOrder(
     });
   }
 
-  // Calculate total
-  const tax = data.tax || 0;
-  const shipping = data.shipping || 0;
-  const discount = data.discount || 0;
-  const total = subtotal + tax + shipping - discount;
+  // REQ-0236 — server-authoritative fees (ignore any client tax/shipping/discount)
+  const fees = computeOrderFeesFromSubtotal(subtotal);
+  assertDiscountWithinSubtotal(fees.discountAmount, subtotal);
+  const tax = fees.taxAmount;
+  const shipping = fees.shippingAmount;
+  const discount = fees.discountAmount;
+  const total = fees.total;
 
   // Create order with items (REQ-0158 party semantics)
   const order = await prisma.order.create({

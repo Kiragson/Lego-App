@@ -57,9 +57,9 @@ import type {
   ClientPortalDashboard,
   SupplierPortalDashboard,
 } from "@/types";
+import { formatStableCurrency } from "@/lib/format";
 
-const formatCurrency = (value: number) =>
-  `$${value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+const formatCurrency = formatStableCurrency;
 
 /**
  * REQ-0159 — Admin Client-badge label: prefer buyer placedByName, then shipping.

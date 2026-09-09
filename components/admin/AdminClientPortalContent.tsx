@@ -51,6 +51,7 @@ import {
   AdminEmbedDataTable,
   type AdminEmbedColumn,
 } from "@/components/admin/AdminEmbedDataTable";
+import { formatStableCurrency } from "@/lib/format";
 
 export type AdminClientPortalContentProps = {
   initialStats?: ClientPortalStats | null;
@@ -111,7 +112,7 @@ export default function AdminClientPortalContent({
         header: "Total Spent",
         headerClassName: "text-right",
         cellClassName: "text-right text-gray-700 dark:text-white",
-        render: (c) => `$${c.totalSpent.toLocaleString()}`,
+        render: (c) => formatStableCurrency(c.totalSpent),
       },
     ],
     [],
@@ -165,7 +166,7 @@ export default function AdminClientPortalContent({
           <AnalyticsCard
             title="Revenue"
             // REQ-0159 — order totals only (avoid double-count with invoice totals)
-            value={`$${(stats?.revenue?.orders ?? 0).toLocaleString()}`}
+            value={formatStableCurrency(stats?.revenue?.orders ?? 0)}
             icon={DollarSign}
             description="Order totals"
             variant="amber"
@@ -298,7 +299,7 @@ export default function AdminClientPortalContent({
                         paymentStatus={o.paymentStatus}
                         trailing={
                           <span className="text-xs font-normal text-gray-700 dark:text-white">
-                            ${o.total.toLocaleString()}
+                            {formatStableCurrency(o.total)}
                           </span>
                         }
                       />
@@ -431,7 +432,7 @@ export default function AdminClientPortalContent({
                       <div className="flex flex-col items-end gap-1 flex-shrink-0">
                         <InvoiceStatusBadge status={i.status} />
                         <span className="text-xs font-normal text-gray-700 dark:text-white">
-                          ${i.total.toLocaleString()}
+                          {formatStableCurrency(i.total)}
                         </span>
                       </div>
                     </li>

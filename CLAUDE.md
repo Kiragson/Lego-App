@@ -136,6 +136,18 @@ All user-facing POST/PUT JSON bodies use `safeParse` + `logger.warn` on fail. Ne
 | OpenRouter 402 (cases 2–4) | `lib/ai/create-chat-completion.ts` — OpenRouter first, Groq fallback; insights route → `serviceUnavailableResponse` (no Sentry); client billing toast only when both fail |
 | Hydration `/` (case 6) | `force-dynamic` + SSR in `app/page.tsx` (no route Suspense); `initialOAuthSuccess` from server; `CategoryList` + `DeferredSelectGate` |
 
+## Sentry / money harden (REQ-0232…0239, 2026-09-09)
+
+| REQ | What |
+|-----|------|
+| 0232 | Stripe webhook acks non-retryable `confirm` failures (`webhook-confirm-policy.ts`) |
+| 0233+0236 | Discount cap + server-authoritative order fees (`order-fees.ts`; create ignores client tax/shipping/discount) |
+| 0234 | MetaMask / `M_ID` / `inpage.js` Sentry scrub |
+| 0235 | Hydration observe-only — do **not** blanket-scrub “Hydration failed” |
+| 0237–0239 | Money UI → `formatStableCurrency` (`@/lib/format`) on home/lists/portals/admin/BI |
+
+Open tracker: [`docs/SENTRY_ERRORS.md`](docs/SENTRY_ERRORS.md) (OPEN-1 Gate 2 / OPEN-2 observe / OPEN-4 leave).
+
 **AI insights:** `lib/ai/create-chat-completion.ts` (`createChatCompletion`, `isLlmConfigured`). Env: `OPENROUTER_API_KEY`, optional `GROQ_API_KEY` + `GROQ_MODEL`. Groq chain in `lib/ai/groq.ts`: `gpt-oss-20b` → `gpt-oss-120b` → `qwen3.8-27b` (REQ-0231; llama + qwen3.6 remapped). Routes: `POST /api/ai/insights`, `POST /api/forecasting`.
 
 ## Home route `/` (SSR-first, 2026-05-19)

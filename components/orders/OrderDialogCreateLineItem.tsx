@@ -73,9 +73,6 @@ export type OrderFormData = {
     country: string;
   };
   useSameAddress?: boolean;
-  tax?: number;
-  shipping?: number;
-  discount?: number;
   notes?: string;
 };
 

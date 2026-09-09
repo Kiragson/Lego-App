@@ -3,25 +3,24 @@
 | Field | Value |
 |-------|-------|
 | **Cycle** | C2 (C1 Gate 2 still PENDING) |
-| **Phase** | Stage 4 Verify — REQ-0228/0229/0230 complete; Gate 2 watch unchanged |
+| **Phase** | Stage 4 Verify complete — await deploy + Gate 2 |
 | **Stopped** | — |
-| **Session** | 2026-09-09 — Sentry guide Step 6b + Groq qwen3.8 + smoke |
-| **Active REQ** | — (shipped: **0228**–**0231**) |
-| **Done range** | … + **0227** + **0228** + **0229** + **0230** + **0231** |
-| **Local/origin tip** | `3566b5e` (+ local uncommitted wave) |
-| **Human Gate 1** | APPROVED (`GATE-0003`, `gate1-node24-deps-20260909`) |
+| **Session** | 2026-09-09 — REQ-0239 BI toFixed currency DONE; commit wave 0232–0239 |
+| **Active REQ** | — (shipped: **0232**–**0239**) |
+| **Done range** | … + **0228**–**0231** + **0232**–**0239** |
+| **Local/origin tip** | commit pending this session |
+| **Human Gate 1** | APPROVED (`GATE-0008`, `gate1-bi-tofixed-currency-20260909`) |
 | **Human Gate 2** | PENDING — Sentry 24h after Ready (`INT-0001` / `gate2-sentry-24h`) |
 | **Resume token** | `gate2-sentry-24h` |
-| **CHECKPOINTS** | `INT-0001` PENDING (Gate 2); `INT-0002` RESOLVED |
+| **CHECKPOINTS** | `INT-0001` PENDING (Gate 2); `INT-0006` RESOLVED |
 
 ---
 
 ## Next
 
-1. Commit REQ-0228/0229/0230 only (exclude dirty UI WIP + unrelated docs churn)
-2. Vercel Ready on tip with `engines.node` **24.x** → smoke Network `/api/monitoring`
-3. Sentry 24h (REQ-0009) — Gate 2
+1. Vercel Ready → smoke Network `/api/monitoring`
+2. Sentry 24h (REQ-0009) — Gate 2; Replay only if hydration persists
 
-**Evidence:** lint ✓ (4 pre-existing warnings) · test **788** · invalidate **222** · build ✓ · `npm audit` **0** · Node **v24.21.0**
+**Evidence:** lint ✓ · test **815** · invalidate **222** · tsc ✓ · build ✓ · security PASS
 
 **Active governance skills:** 01 · 02 · 17 · 19

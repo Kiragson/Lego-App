@@ -38,9 +38,9 @@ import { OrderStatusBadge, PaymentStatusBadge } from "@/lib/ui/semantic-badges";
 import { getOrderItemUnitCounts } from "@/lib/orders/order-list-meta";
 import { cn } from "@/lib/utils";
 import type { Order } from "@/types";
+import { formatStableCurrency } from "@/lib/format";
 
-const fmt = (v: number) =>
-  `$${v.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+const fmt = formatStableCurrency;
 
 export type OrderPickerCommandProps = {
   /** Non-cancelled orders eligible for invoicing */

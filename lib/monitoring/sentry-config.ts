@@ -159,6 +159,11 @@ export const SENTRY_IGNORE_ERRORS: Array<string | RegExp> = [
   "Loading chunk",
   "Failed to load chunk",
   /Loading CSS chunk [\d]+ failed/,
+  // REQ-0234 — wallet / browser-extension injectors (not app code)
+  "Failed to connect to MetaMask",
+  /MetaMask/i,
+  /M_ID/,
+  /inpage\.js/i,
 ];
 
 /** Drop events whose stack/frames come from browser extensions */
@@ -167,6 +172,8 @@ export const SENTRY_DENY_URLS: RegExp[] = [
   /^moz-extension:\/\//i,
   /^safari-extension:\/\//i,
   /^safari-web-extension:\/\//i,
+  /scripts\/inpage\.js/i,
+  /metamask/i,
 ];
 
 /** True when exception text looks like a stale Next.js chunk after deploy */
@@ -188,6 +195,38 @@ export function isChunkLoadSentryEvent(event: ErrorEvent): boolean {
   return false;
 }
 
+/** REQ-0234 — MetaMask / wallet extension client noise */
+export function isWalletExtensionSentryEvent(event: ErrorEvent): boolean {
+  const values = event.exception?.values ?? [];
+  for (const v of values) {
+    const text = typeof v.value === "string" ? v.value : "";
+    if (
+      /metamask/i.test(text) ||
+      /M_ID/.test(text) ||
+      /Failed to connect to MetaMask/i.test(text)
+    ) {
+      return true;
+    }
+  }
+  const frames = values.flatMap((v) => v.stacktrace?.frames ?? []);
+  for (const frame of frames) {
+    const filename = frame.filename ?? "";
+    if (/inpage\.js/i.test(filename) || /metamask/i.test(filename)) {
+      return true;
+    }
+  }
+  const serialized = JSON.stringify({
+    breadcrumbs: event.breadcrumbs,
+    exception: event.exception,
+    request: event.request,
+  });
+  return (
+    /inpage\.js/i.test(serialized) ||
+    /Failed to connect to MetaMask/i.test(serialized) ||
+    /["']M_ID["']/.test(serialized)
+  );
+}
+
 /** Strip auth/cookies before events leave the app; drop known DOM noise (translate + Radix portal) */
 export function scrubSentryEvent(
   event: ErrorEvent,
@@ -196,7 +235,8 @@ export function scrubSentryEvent(
   if (
     isBrowserTranslationRemoveChildError(event) ||
     isRadixPortalRemoveChildSentryEvent(event) ||
-    isChunkLoadSentryEvent(event)
+    isChunkLoadSentryEvent(event) ||
+    isWalletExtensionSentryEvent(event)
   ) {
     return null;
   }

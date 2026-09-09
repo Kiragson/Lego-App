@@ -17,9 +17,9 @@ import { PageSectionHeader } from "@/components/shared";
 import { Category } from "@/types";
 import type { CategoryForHome } from "@/lib/server/home-data";
 import type { DashboardStats } from "@/types";
+import { formatStableCurrency } from "@/lib/format";
 
-const formatCurrency = (value: number) =>
-  `$${value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+const formatCurrency = formatStableCurrency;
 
 const CategoryTable = dynamic(
   () =>

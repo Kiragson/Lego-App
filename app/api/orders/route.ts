@@ -27,6 +27,7 @@ import {
   resolveBuyerUserId,
   resolveStoreOwnerUserId,
 } from "@/lib/orders/order-party";
+import { isDiscountValidationError } from "@/lib/orders/order-money-validation";
 import { getOrderDetailForPage } from "@/lib/server/order-detail-data";
 import { resolveOrderStatusAtFromSource } from "@/lib/orders/order-status-display-date";
 
@@ -413,6 +414,18 @@ export async function POST(request: NextRequest) {
       { status: 201 },
     );
   } catch (error) {
+    if (isDiscountValidationError(error)) {
+      logger.warn("Invalid order discount", {
+        error: error instanceof Error ? error.message : error,
+      });
+      return NextResponse.json(
+        {
+          error:
+            error instanceof Error ? error.message : "Invalid discount amount",
+        },
+        { status: 400 },
+      );
+    }
     logger.error("Error creating order:", error);
     return NextResponse.json(
       {

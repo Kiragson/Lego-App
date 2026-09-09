@@ -74,6 +74,7 @@ import {
   getUserOverviewDescription,
   shouldShowMyActivityTip,
 } from "@/lib/ui/user-overview-copy";
+import { formatStableCurrency } from "@/lib/format";
 
 const PROTECTED_EMAILS = [
   "test@admin.com",
@@ -433,7 +434,7 @@ export default function AdminUserManagementDetailContent({
                     {dataLoading ? (
                       <DataSlotPulse variant="currency" />
                     ) : (
-                      `$${(overview!.totalRevenue ?? 0).toLocaleString()}`
+                      formatStableCurrency(overview!.totalRevenue ?? 0)
                     )}
                   </p>
                   <p className={cn("text-xs", TYPO_BODY_MUTED)}>Total Revenue</p>
@@ -446,7 +447,7 @@ export default function AdminUserManagementDetailContent({
                     {dataLoading ? (
                       <DataSlotPulse variant="currency" />
                     ) : (
-                      `$${overview!.totalSpent.toLocaleString()}`
+                      formatStableCurrency(overview!.totalSpent)
                     )}
                   </p>
                   <p className={cn("text-xs", TYPO_BODY_MUTED)}>Total Spent</p>
@@ -459,7 +460,7 @@ export default function AdminUserManagementDetailContent({
                     {dataLoading ? (
                       <DataSlotPulse variant="currency" />
                     ) : (
-                      `$${overview!.totalDue.toLocaleString()}`
+                      formatStableCurrency(overview!.totalDue)
                     )}
                   </p>
                   <p className={cn("text-xs", TYPO_BODY_MUTED)}>Total Due</p>

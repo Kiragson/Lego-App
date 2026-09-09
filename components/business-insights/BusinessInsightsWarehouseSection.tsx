@@ -52,6 +52,7 @@ import {
   createChartBarLabelRenderer,
 } from "@/lib/ui/chart-point-label";
 import type { WarehouseStockSummary } from "@/types/stock-allocation";
+import { formatStableCurrency } from "@/lib/format";
 
 const PIE_COLORS = ["#06b6d4", "#0ea5e9", "#10b981", "#8b5cf6", "#f59e0b"];
 
@@ -105,7 +106,7 @@ export function BusinessInsightsWarehouseSection({
         />
         <AnalyticsCard
           title="Inventory value"
-          value={`$${Math.round(metrics.totalValue).toLocaleString()}`}
+          value={formatStableCurrency(Math.round(metrics.totalValue))}
           icon={DollarSign}
           variant="emerald"
           description={
@@ -282,7 +283,7 @@ export function BusinessInsightsWarehouseSection({
                           {row.totalReserved}
                         </TableCell>
                         <TableCell className="text-emerald-600 dark:text-emerald-400 font-medium">
-                          ${Math.round(row.totalValue).toLocaleString()}
+                          {formatStableCurrency(Math.round(row.totalValue))}
                         </TableCell>
                       </TableRow>
                     );

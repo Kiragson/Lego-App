@@ -80,6 +80,7 @@ import { ProductThumb } from "@/components/products/ProductOptionRow";
 import { getOrderItemUnitCounts } from "@/lib/orders/order-list-meta";
 import { cn } from "@/lib/utils";
 import { OrderPickerCommand } from "./OrderPickerCommand";
+import { formatStableCurrency } from "@/lib/format";
 
 /** ISO date string for native date inputs (REQ-0126). */
 function toDateInputValue(value?: Date | string | null): string {
@@ -98,8 +99,7 @@ interface InvoiceDialogProps {
   initialOrderId?: string;
 }
 
-const fmt = (v: number) =>
-  `$${v.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+const fmt = formatStableCurrency;
 
 /**
  * Invoice Dialog Component

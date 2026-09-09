@@ -652,3 +652,29 @@
 | ART-0230a | REQ-0230 | next.config silent/telemetry/errorHandler + tunnelRoute | quiet CI |
 | ART-0230b | REQ-0230 | sentry-config scrub/denyUrls/enableLogs; logger.warn no-op; client+server init | noise harden |
 | TC-0228-0230 | REQ-0228..0230 | lint ✓ test 788 ✓ invalidate 222 ✓ build ✓ audit 0 | PASS (Node 24.21.0) |
+
+| ART-0232a | REQ-0232 | `lib/payments/webhook-confirm-policy.ts` | non-retryable confirm ack |
+| ART-0232b | REQ-0232 | `app/api/payments/webhook/route.ts` | no throw on Unknown checkout type |
+| ART-0233a | REQ-0233 | `lib/orders/order-money-validation.ts` | discount ≤ subtotal |
+| ART-0233b | REQ-0233 | `prisma/order.ts` + `app/api/orders/route.ts` | enforce + 400 |
+| ART-0234a | REQ-0234 | `lib/monitoring/sentry-config.ts` | MetaMask/M_ID/inpage scrub |
+| ART-0234b | REQ-0234 | `docs/SENTRY_ERRORS.md` | Aug-2026 triage table |
+| ART-0235a | REQ-0235 | DECISION_LOG + VALIDATION_SUMMARY | hydration observe-only |
+| TC-0232-0235 | REQ-0232..0235 | lint ✓ test 805 ✓ invalidate 222 ✓ build ✓ smoke discount 400 | PASS |
+
+| ART-0236a | REQ-0236 | `lib/orders/order-fees.ts` + tests | shared fee policy |
+| ART-0236b | REQ-0236 | `prisma/order.ts` createOrder | server fees only |
+| ART-0236c | REQ-0236 | createOrderSchema + CreateOrderInput + OrderDialog | strip client fees |
+| TC-0236 | REQ-0236 | lint ✓ test 815 ✓ invalidate 222 ✓ build ✓ smoke 201 fees | PASS |
+
+| ART-0237a | REQ-0237 | formatStableCurrency sweep home/lists/portals | locale hydration |
+| TC-0237 | REQ-0237 | lint ✓ test 815 ✓ invalidate 222 ✓ build ✓ multi-role smoke | PASS |
+
+| ART-0238a | REQ-0238 | AdminClient/SupplierPortal + UserManagementDetail currency | OPEN-3 |
+| ART-0238b | REQ-0238 | BusinessInsightPage + BusinessInsightsWarehouseSection | OPEN-3 |
+| ART-0238c | REQ-0238 | docs/SENTRY_ERRORS.md OPEN-3 closed | docs |
+| TC-0238 | REQ-0238 | lint ✓ test 815 ✓ invalidate 222 ✓ build ✓ smoke | PASS |
+
+| ART-0239a | REQ-0239 | BusinessInsightPage averagePrice/valueDensity | toFixed→stable |
+| ART-0239b | REQ-0239 | docs/SENTRY_ERRORS.md 0239 closed | docs |
+| TC-0239 | REQ-0239 | lint ✓ test 815 ✓ invalidate 222 ✓ tsc ✓ build ✓ | PASS |

@@ -169,9 +169,7 @@ export interface CreateOrderInput {
   }>;
   shippingAddress?: ShippingAddress;
   billingAddress?: BillingAddress;
-  tax?: number;
-  shipping?: number;
-  discount?: number;
+  /** REQ-0236 — fees computed server-side; not accepted on create */
   notes?: string;
 }
 

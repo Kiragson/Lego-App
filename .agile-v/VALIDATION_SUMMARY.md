@@ -1,11 +1,73 @@
 # Validation Summary — Cycle C1
 
-**Generated:** 2026-09-09 (REQ-0228/0229/0230 Node 24 + audit-zero + Sentry harden)
+**Generated:** 2026-09-09 (REQ-0239 BI toFixed currency)
 **eval_gate_status:** PENDING (Human Gate 2)
-**Active:** Prod smoke after next deploy (Node 24 engines + `/api/monitoring`)
-**Last ship:** REQ-0228/0229/0230 local complete — commit pending
+**Active:** Deploy tip → 24h Sentry (`gate2-sentry-24h`)
+**Last ship:** REQ-0239 BI averagePrice/valueDensity → formatStableCurrency
 
 ---
+
+## REQ-0239 — BI toFixed currency parity (2026-09-09)
+
+| Check | Result |
+| ----- | ------ |
+| Sites | 6× averagePrice/valueDensity → `formatStableCurrency` |
+| Left alone | stockUtilization/stockCoverage `toFixed`; totalQuantity `toLocaleString` |
+| Docs | 0239 closed; OPEN-1/2/4 remain |
+| Gate 1 | GATE-0008 APPROVED (`gate1-bi-tofixed-currency-20260909`) |
+| Gates | lint ✓ · test **815** · invalidate **222** · tsc ✓ · build ✓ |
+| Security | PASS (display-only; wave fees/webhook net harden) |
+| Gate 2 | Still PENDING |
+
+## REQ-0238 — Admin/BI currency sweep OPEN-3 (2026-09-09)
+
+| Check | Result |
+| ----- | ------ |
+| Sweep | AdminClient/SupplierPortal, AdminUserManagementDetail, BusinessInsightPage, BusinessInsightsWarehouseSection → `formatStableCurrency` |
+| Left alone | Count `toLocaleString` on BI quantity; ApiStatus timestamps |
+| Docs | `docs/SENTRY_ERRORS.md` OPEN-3 closed; OPEN-1/2/4 remain |
+| Gate 1 | GATE-0007 APPROVED (`gate1-admin-bi-currency-20260909`) |
+| Gates | lint ✓ (4 pre-existing warn) · test **815** · invalidate **222** · build ✓ |
+| Smoke | `/login` 200; admin BI/portals 307 unauth→login (dev up) |
+| Verifier | PASS WITH WARNINGS (BI `toFixed` leftover → closed by REQ-0239) |
+| Gate 2 | Still PENDING |
+
+## REQ-0237 — Hydration-safe currency (2026-09-09)
+
+| Check | Result |
+| ----- | ------ |
+| Sweep | Zero `toLocaleString(undefined` in `components/` |
+| Surfaces | StatisticsSection, Product/Category/Supplier/Order/Invoice lists, Client/Supplier portals, InvoiceDialog, OrderPickerCommand |
+| Helper | `formatStableCurrency` from `@/lib/format` |
+| Gates | lint ✓ · test **815** · invalidate **222** · build ✓ |
+| Smoke | admin `/` `/orders` `/products` 200; supplier `/supplier` 200; client `/client` 200; fee regression total 38.8 |
+| Gate 2 | Still PENDING — no blanket hydration scrub |
+
+## REQ-0236 — Server-authoritative order fees (2026-09-09)
+
+| Check | Result |
+| ----- | ------ |
+| Shared | `lib/orders/order-fees.ts` — 7% tax, 10–50% discount, $4.99 / free on 10% tier |
+| createOrder | ignores client fees; persists computed; belt `assertDiscountWithinSubtotal` |
+| Schema | `createOrderSchema` + `CreateOrderInput` fee fields removed |
+| UI | OrderDialog uses shared helper; create payload omits fees |
+| Smoke | malicious `discount=40,tax=0,shipping=0` on $40 SKU → 201 tax=2.8 discount=4 total=38.8 |
+| Gates | lint ✓ · test **815** · invalidate **222** · build ✓ |
+| Security | Finding 2 closed; Sentry hydration still observe-only (0235) |
+
+## REQ-0232 / 0233 / 0234 / 0235 — Sentry triage (2026-09-09)
+
+| Check | Result |
+| ----- | ------ |
+| Webhook | `!result.ok` → warn + ack `{ received: true }`; no throw on Unknown checkout type |
+| Discount | `assertDiscountWithinSubtotal` in `createOrder`; API 400 via `isDiscountValidationError` |
+| Scrub | MetaMask / `M_ID` / `inpage.js` in ignore + denyUrls + `isWalletExtensionSentryEvent` |
+| Hydration | Observe-only (REQ-0235); Replay after Ready — no UI code this wave |
+| Docs | `docs/SENTRY_ERRORS.md` Aug-2026 triage table |
+| Gate 1 | GATE-0004 APPROVED (`gate1-sentry-triage-20260909`) |
+| Gates | lint ✓ (4 pre-existing warn) · test **805** · invalidate **222** · build ✓ |
+| Smoke | login ✓; `/` `/orders` `/products` 200; oversize discount → **400** `Discount cannot exceed order subtotal`; tunnel rewrite in routes-manifest ✓ |
+| Hydration | Observe-only logged; Gate 2 still `gate2-sentry-24h` |
 
 ## REQ-0228 / 0229 / 0230 — Node 24 + deps + Sentry (2026-09-09)
 

@@ -666,3 +666,33 @@ Format: `TIMESTAMP | AGENT | DECISION | RATIONALE | REQ-ID`
 2026-09-09T14:55:00+02:00 | build-agent | SupplierPortal null-safe chart/list when dashboard missing | Admin hit /supplier 500 on dashboard!.monthlyRevenue | smoke
 
 2026-09-09T14:55:00+02:00 | red-team | verify-deep PASS WITH WARNINGS | audit 0; groq/sentry tests 25; tunnel prod rewrite ✓; turbo dev tunnel POST 404 expected; exclude UI WIP from commit | REQ-0230,REQ-0231
+
+2026-09-09T15:15:00+02:00 | build-agent | Webhook acks !ok confirm (Unknown checkout type) — no throw/500 | Stop Stripe retry + Sentry High on non-app sessions | REQ-0232
+
+2026-09-09T15:15:00+02:00 | build-agent | assertDiscountWithinSubtotal in createOrder; POST → 400 | Human PoC uncapped discount; UI fees still client-computed | REQ-0233
+
+2026-09-09T15:15:00+02:00 | build-agent | scrub MetaMask / M_ID / inpage.js | Extension noise on /login | REQ-0234
+
+2026-09-09T15:15:00+02:00 | build-agent | Hydration+hooks: observe only post-deploy Replay | No speculative home rewrite; Gate 2 still gate2-sentry-24h | REQ-0235
+
+2026-09-09T15:18:00+02:00 | red-team | Gates PASS | lint ✓ test 805 ✓ invalidate 222 ✓ build ✓; smoke admin pages 200; discount 400; tunnel rewrite ✓ | REQ-0232,REQ-0233,REQ-0234,REQ-0235
+
+2026-09-09T15:36:00+02:00 | build-agent | Shared order-fees; createOrder ignores client tax/shipping/discount | Finding 2 residual $0 unpaid+reserve closed via tier recompute | REQ-0236
+
+2026-09-09T15:36:00+02:00 | build-agent | Supersede REQ-0121 AC8 UI-only fee source | Single shared pure module for UI+server | REQ-0236
+
+2026-09-09T15:37:00+02:00 | red-team | REQ-0236 PASS; security PASS WITH WARNINGS (hydration observe only) | lint ✓ test 815 ✓ invalidate 222 ✓ build ✓; smoke malicious fees → tier totals | REQ-0236
+
+2026-09-09T15:52:00+02:00 | build-agent | Replace toLocaleString(undefined) currency with formatStableCurrency on home/lists/portals | Deterministic SSR/client match for locale vi hydration | REQ-0237
+
+2026-09-09T15:52:00+02:00 | red-team | REQ-0237 gates PASS; multi-role smoke 200; fee regression OK; Gate 2 still pending | No blanket hydration Sentry scrub | REQ-0237
+
+2026-09-09T16:10:00+02:00 | build-agent | Sweep residual money toLocaleString on admin portals + BI to formatStableCurrency | Close SENTRY OPEN-3 (not on / first paint) | REQ-0238
+
+2026-09-09T16:10:00+02:00 | product-owner | Leave OPEN-1 Gate2 / OPEN-2 Replay / OPEN-4 removeChild; code only OPEN-3 | Plan sentry_open_currency_sweep | REQ-0238
+
+2026-09-09T16:12:00+02:00 | red-team | REQ-0238 PASS; OPEN-3 closed; verifier PASS WITH WARNINGS (BI toFixed optional) | lint ✓ test 815 ✓ invalidate 222 ✓ build ✓ | REQ-0238
+
+2026-09-09T16:20:00+02:00 | build-agent | BI averagePrice/valueDensity toFixed → formatStableCurrency | Close verify-deep leftover after OPEN-3 | REQ-0239
+
+2026-09-09T16:25:00+02:00 | red-team | REQ-0239 PASS; security PASS for wave 0232–0239; commit-ready | lint ✓ test 815 ✓ invalidate 222 ✓ tsc ✓ build ✓ | REQ-0239
