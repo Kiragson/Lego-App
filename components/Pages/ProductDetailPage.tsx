@@ -80,7 +80,7 @@ import { findProductForecast } from "@/lib/forecasting/entity-forecast";
 import { enrichProductInsightsWithWarehouseStock } from "@/lib/insights/product-insights-enrich";
 import { sumAllocatedQuantity } from "@/lib/insights/warehouse-stock-aggregate";
 import { formatCatalogCommitWarehouseHint } from "@/lib/stock-allocation/catalog-allocation-copy";
-import { toDateOrNull } from "@/lib/format";
+import { formatStableCurrency, toDateOrNull } from "@/lib/format";
 import {
   computeCommittedQuantity,
   getDisplayCommittedQuantity,
@@ -548,7 +548,7 @@ export default function ProductDetailPage({
                     Price
                   </p>
                   <p className="text-sm sm:text-base font-medium text-gray-700 dark:text-white">
-                    ${product?.price.toFixed(2)}
+                    {formatStableCurrency(product?.price ?? 0)}
                   </p>
                 </GlassCardBody>
               </GlassCard>
@@ -829,7 +829,7 @@ export default function ProductDetailPage({
                   >
                     {!dataLoading && (
                       <span className="text-emerald-600 dark:text-emerald-400">
-                        ${stats.totalRevenue.toFixed(2)}
+                        {formatStableCurrency(stats.totalRevenue)}
                       </span>
                     )}
                   </DetailInfoRow>
@@ -850,7 +850,7 @@ export default function ProductDetailPage({
                     {!dataLoading && (
                       <span className="inline-flex flex-wrap items-baseline gap-x-1.5">
                         <span className="text-sky-600 dark:text-sky-400">
-                          ${(stats.totalValue ?? 0).toFixed(2)}
+                          {formatStableCurrency(stats.totalValue ?? 0)}
                         </span>
                         <span className={cn("text-xs", TYPO_BODY_MUTED)}>
                           (price × on-hand qty)

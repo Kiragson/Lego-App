@@ -45,7 +45,7 @@ import { OrderStatusBadge, PaymentStatusBadge } from "@/lib/ui/semantic-badges";
 import type { Order } from "@/types";
 import type { OrderReviewContext } from "@/lib/server/order-review-context-data";
 import { cn } from "@/lib/utils";
-import { toDateOrNull } from "@/lib/format";
+import { formatStableCurrency, toDateOrNull } from "@/lib/format";
 import { APP_SHELL_DETAIL_CLASS } from "@/lib/ui/shell-layout-styles";
 import { TYPO_CARD_TITLE } from "@/lib/ui/typography-scale";
 import OrderDialog from "@/components/orders/OrderDialog";
@@ -379,7 +379,8 @@ export default function OrderDetailPage({
                         label="Payment:"
                         tone="amber"
                       >
-                        Partial payment — total ${order.total.toFixed(2)}
+                        Partial payment — total{" "}
+                        {formatStableCurrency(order.total)}
                         {order.invoiceForOrder && (
                           <>
                             {" · "}

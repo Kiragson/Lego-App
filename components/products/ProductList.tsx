@@ -3,7 +3,6 @@
 import React, { useState, useMemo } from "react";
 import dynamic from "next/dynamic";
 import { usePathname } from "next/navigation";
-import { PaginationType } from "@/components/shared/PaginationSelector";
 import { createProductColumns } from "./ProductTableColumns";
 import { useAuth } from "@/contexts";
 import {
@@ -14,6 +13,7 @@ import {
   useDashboard,
   useSupplierPortalDashboard,
 } from "@/hooks/queries";
+import { useTypedListSearch } from "@/hooks/use-typed-list-search";
 import { isDataSlotLoading, isDataSlotUnsettled, queryKeys, useSyncSsrQueryData } from "@/lib/react-query";
 import ProductFilters from "./ProductFilters";
 import { StatisticsCard } from "@/components/home/StatisticsCard";
@@ -120,11 +120,8 @@ const ProductList = React.memo(function ProductList({
       )
     : false;
   const supplierPortal = supplierPortalQuery.data;
-  const [searchTerm, setSearchTerm] = useState("");
-  const [pagination, setPagination] = useState<PaginationType>({
-    pageIndex: 0,
-    pageSize: 8,
-  });
+  const { searchTerm, setSearchTerm, pagination, setPagination } =
+    useTypedListSearch();
 
   // State for selected filters
   const [selectedCategory, setSelectedCategory] = useState<string[]>([]);

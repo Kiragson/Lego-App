@@ -7,6 +7,7 @@
 
 import { CircleDollarSign, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { formatStableCurrency } from "@/lib/format";
 
 export type PaymentMoneyBreakdownProps = {
   total: number;
@@ -44,7 +45,7 @@ export function PaymentMoneyBreakdown({
             : "text-sm sm:text-base font-medium text-gray-900 dark:text-gray-100",
         )}
       >
-        ${total.toFixed(2)}
+        {formatStableCurrency(total)}
       </span>
       {showBreakdown && (
         <>
@@ -56,7 +57,7 @@ export function PaymentMoneyBreakdown({
               )}
             >
               <CircleDollarSign className="h-3 w-3 shrink-0" aria-hidden />
-              Paid ${paid.toFixed(2)}
+              Paid {formatStableCurrency(paid)}
             </span>
           )}
           {due > 0 && (
@@ -67,7 +68,7 @@ export function PaymentMoneyBreakdown({
               )}
             >
               <Clock className="h-3 w-3 shrink-0" aria-hidden />
-              Due ${due.toFixed(2)}
+              Due {formatStableCurrency(due)}
             </span>
           )}
         </>

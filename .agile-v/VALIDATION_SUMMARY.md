@@ -1,11 +1,25 @@
 # Validation Summary — Cycle C1
 
-**Generated:** 2026-09-09 (docs hygiene — tip sync + browser smoke)
+**Generated:** 2026-09-09 (prod-harden W1–W5 — typed URL lists + invoice fees + currency)
 **eval_gate_status:** PENDING (Human Gate 2 — watch in progress)
 **Active:** 24h Sentry quiet (`gate2-sentry-24h`)
-**Last ship:** tip `3feceb7` production READY (includes REQ-0232–0239)
+**Last ship:** tip `3feceb7` production READY; harden commit pending deploy
 
 ---
+
+## Prod harden W1–W5 (2026-09-09)
+
+| Check | Result |
+| ----- | ------ |
+| W1–W2 | Zod `list-search-params` + `useTypedListSearch` on 7 lists; `ownerId` preserved |
+| W3 | `/api/monitoring` 429 documented; tunnel kept |
+| W4 | Invoice create/update ignore client fees/total; more `formatStableCurrency` (incl. Pay CTAs) |
+| W5 | Prior role smoke PASS (admin/client/supplier); not re-run on this tip |
+| W6 | Gate 2 **still PENDING** — no fake close |
+| Invalidation | Unchanged (222 audit) |
+| Gates | lint ✓ (4 pre-existing warnings) · vitest hub+fee 12 ✓ · invalidate **222** ✓ · tsc ✓ |
+| Security | PASS — no Critical/High/Medium in harden diff |
+| Gate 2 | Still PENDING until 24h quiet on **deployed** tip |
 
 ## Docs hygiene — tip sync + browser smoke (2026-09-09)
 

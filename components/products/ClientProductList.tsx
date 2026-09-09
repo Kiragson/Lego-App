@@ -2,9 +2,9 @@
 
 import React, { useState, useEffect, useMemo } from "react";
 import dynamic from "next/dynamic";
-import { PaginationType } from "@/components/shared/PaginationSelector";
 import { columns } from "./ProductTableColumns";
 import { useClientBrowseMeta, useClientBrowseProducts } from "@/hooks/queries";
+import { useTypedListSearch } from "@/hooks/use-typed-list-search";
 import { isDataSlotLoading, queryKeys, useSyncSsrQueryData } from "@/lib/react-query";
 import { PAGE_STATS_GRID_CLASS, APP_SHELL_WIDTH_CLASS, PAGE_SECTION_SPACING_CLASS } from "@/lib/ui/shell-layout-styles";
 import type {
@@ -68,11 +68,8 @@ export default function ClientProductList({
   const selectedOwnerId = controlledOwnerId ?? internalOwnerId;
   const setSelectedOwnerId = onOwnerChange ?? setInternalOwnerId;
 
-  const [searchTerm, setSearchTerm] = useState("");
-  const [pagination, setPagination] = useState<PaginationType>({
-    pageIndex: 0,
-    pageSize: 8,
-  });
+  const { searchTerm, setSearchTerm, pagination, setPagination } =
+    useTypedListSearch();
   const [selectedCategory, setSelectedCategory] = useState<string[]>([]);
   const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
   const [selectedSuppliers, setSelectedSuppliers] = useState<string[]>([]);

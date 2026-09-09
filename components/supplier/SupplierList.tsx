@@ -9,10 +9,10 @@ import React, {
 } from "react";
 import dynamic from "next/dynamic";
 import { usePathname } from "next/navigation";
-import { PaginationType } from "@/components/shared/PaginationSelector";
 import { createSupplierColumns } from "./SupplierTableColumns";
 import { useAuth } from "@/contexts";
 import { useSuppliers, useDashboard } from "@/hooks/queries";
+import { useTypedListSearch } from "@/hooks/use-typed-list-search";
 import { isDataSlotLoading, isDataSlotUnsettled, queryKeys, useSyncSsrQueryData } from "@/lib/react-query";
 import { APP_SHELL_WIDTH_CLASS } from "@/lib/ui/shell-layout-styles";
 import SupplierFilters from "./SupplierFilters";
@@ -86,12 +86,8 @@ const SupplierList = React.memo(function SupplierList({
     }
   }, []);
 
-  // State for search term and pagination
-  const [searchTerm, setSearchTerm] = useState("");
-  const [pagination, setPagination] = useState<PaginationType>({
-    pageIndex: 0,
-    pageSize: 8,
-  });
+  const { searchTerm, setSearchTerm, pagination, setPagination } =
+    useTypedListSearch();
 
   // State for status filter (all, active, inactive)
   const [statusFilter, setStatusFilter] = useState<

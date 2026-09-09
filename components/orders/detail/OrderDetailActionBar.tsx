@@ -26,6 +26,7 @@ import {
 } from "@/components/shared";
 import { PaymentDialog } from "@/components/payments";
 import { ShippingManagement } from "@/components/shipping";
+import { formatStableCurrency } from "@/lib/format";
 import {
   Tooltip,
   TooltipContent,
@@ -194,7 +195,7 @@ export function OrderDetailActionBar({
                     className={glassDetailFooterButtonClass("emerald")}
                   >
                     <CreditCard className="h-4 w-4 shrink-0" />
-                    Pay ${payAmount.toFixed(2)}
+                    Pay {formatStableCurrency(payAmount)}
                   </Button>
                 }
               />

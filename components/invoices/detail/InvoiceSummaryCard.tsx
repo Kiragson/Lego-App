@@ -22,6 +22,7 @@ import type { Invoice } from "@/types";
 import { cn } from "@/lib/utils";
 import { TYPO_CARD_TITLE } from "@/lib/ui/typography-scale";
 import { GlassCard } from "@/components/orders/detail/order-detail-primitives";
+import { formatStableCurrency } from "@/lib/format";
 
 export type InvoiceSummaryCardProps = {
   invoice?: Invoice;
@@ -115,14 +116,14 @@ export function InvoiceSummaryCard({
           label="Subtotal:"
           loading={dataLoading}
           iconClassName="text-sky-600 dark:text-sky-400"
-          value={`$${Number(invoice?.subtotal ?? 0).toFixed(2)}`}
+          value={formatStableCurrency(Number(invoice?.subtotal ?? 0))}
         />
         {!dataLoading && invoice?.tax != null && invoice.tax > 0 && (
           <SummaryRow
             icon={Percent}
             label="Tax:"
             iconClassName="text-violet-600 dark:text-violet-400"
-            value={`$${Number(invoice.tax).toFixed(2)}`}
+            value={formatStableCurrency(Number(invoice.tax))}
           />
         )}
         {!dataLoading && invoice?.shipping != null && invoice.shipping > 0 && (
@@ -130,7 +131,7 @@ export function InvoiceSummaryCard({
             icon={Truck}
             label="Shipping:"
             iconClassName="text-cyan-600 dark:text-cyan-400"
-            value={`$${Number(invoice.shipping).toFixed(2)}`}
+            value={formatStableCurrency(Number(invoice.shipping))}
           />
         )}
         {!dataLoading && invoice?.discount != null && invoice.discount > 0 && (
@@ -138,7 +139,7 @@ export function InvoiceSummaryCard({
             icon={Tag}
             label="Discount:"
             iconClassName="text-rose-600 dark:text-rose-400"
-            value={`-$${Number(invoice.discount).toFixed(2)}`}
+            value={"-" + formatStableCurrency(Number(invoice.discount))}
             valueClassName="text-rose-600 dark:text-rose-400"
           />
         )}
@@ -153,7 +154,7 @@ export function InvoiceSummaryCard({
             {dataLoading ? (
               <DataSlotPulse variant="currency" />
             ) : (
-              `$${Number(invoice!.total).toFixed(2)}`
+              formatStableCurrency(Number(invoice!.total))
             )}
           </span>
         </div>
@@ -166,7 +167,7 @@ export function InvoiceSummaryCard({
               ? "text-rose-600 dark:text-rose-400"
               : "text-emerald-600 dark:text-emerald-400"
           }
-          value={`$${Number(invoice?.amountPaid ?? 0).toFixed(2)}`}
+          value={formatStableCurrency(Number(invoice?.amountPaid ?? 0))}
           valueClassName={
             isClosed
               ? "text-rose-600 dark:text-rose-400"
@@ -184,7 +185,7 @@ export function InvoiceSummaryCard({
                 ? "text-amber-600 dark:text-amber-400"
                 : "text-emerald-600 dark:text-emerald-400"
           }
-          value={`$${amountDue.toFixed(2)}`}
+          value={formatStableCurrency(amountDue)}
           valueClassName={
             isClosed
               ? "text-rose-600 dark:text-rose-400"

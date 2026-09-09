@@ -504,7 +504,7 @@ export default function SupplierPortalPage({
                               paymentStatus={order.paymentStatus}
                               trailing={
                                 <span className="text-xs font-normal text-gray-700 dark:text-white">
-                                  ${order.total.toFixed(2)}
+                                  {formatStableCurrency(order.total)}
                                 </span>
                               }
                             />

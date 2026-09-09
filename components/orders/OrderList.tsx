@@ -13,7 +13,6 @@ import React, {
   useCallback,
 } from "react";
 import { usePathname } from "next/navigation";
-import { PaginationType } from "@/components/shared/PaginationSelector";
 import { OrderTable } from "./OrderTable";
 import { createOrderColumns } from "./OrderTableColumns";
 import { useAuth } from "@/contexts";
@@ -24,6 +23,7 @@ import {
   useClientPortalDashboard,
   useSupplierPortalDashboard,
 } from "@/hooks/queries";
+import { useTypedListSearch } from "@/hooks/use-typed-list-search";
 import {
   isDataSlotLoading,
   isDataSlotUnsettled,
@@ -247,12 +247,9 @@ const OrderList = React.memo(
       }
     }, []);
 
-    // State for column filters, search term, and pagination
-    const [searchTerm, setSearchTerm] = useState("");
-    const [pagination, setPagination] = useState<PaginationType>({
-      pageIndex: 0,
-      pageSize: 8,
-    });
+    // State for column filters, search term, and pagination (URL-synced)
+    const { searchTerm, setSearchTerm, pagination, setPagination } =
+      useTypedListSearch();
 
     // State for selected filters
     const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);

@@ -698,3 +698,9 @@ Format: `TIMESTAMP | AGENT | DECISION | RATIONALE | REQ-ID`
 2026-09-09T16:25:00+02:00 | red-team | REQ-0239 PASS; security PASS for wave 0232–0239; commit-ready | lint ✓ test 815 ✓ invalidate 222 ✓ tsc ✓ build ✓ | REQ-0239
 
 2026-09-09T16:35:00+02:00 | release-manager | Tip fe80aaa on origin; Vercel READY dpl_HApgnTGt…; OPEN-1 watch started | Do not APPROVE Gate 2 until 24h quiet; agent HTTP smoke 429 checkpoint | REQ-0009
+
+2026-09-09T17:20:00+02:00 | build-agent | Zod typed list URL page/pageSize/q + shallow replaceState | Next.js stand-in for TanStack Start useSearch; clamps pageSize; preserves ownerId | REQ-0009
+
+2026-09-09T17:20:00+02:00 | build-agent | Invoice create/update ignore client tax/shipping/discount/total | Order-authoritative money parity with REQ-0236; Stripe amountDue integrity | REQ-0009
+
+2026-09-09T17:20:00+02:00 | red-team | Harden W1–W5 verify PASS WITH WARNINGS; security PASS; Gate 2 still PENDING | lint ✓ tsc ✓ vitest hub 12 ✓ invalidate 222 ✓; no fake Gate 2 close | REQ-0009

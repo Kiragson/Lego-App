@@ -38,7 +38,7 @@ import {
   useSyncSsrQueryData,
 } from "@/lib/react-query";
 import { useAuth } from "@/contexts";
-import { toDateOrNull } from "@/lib/format";
+import { formatStableCurrency, toDateOrNull } from "@/lib/format";
 import Navbar from "@/components/layouts/Navbar";
 import {
   ClientDateTime,
@@ -379,7 +379,7 @@ export default function InvoiceDetailPage({
                         amountDueToneClass,
                       )}
                     >
-                      ${invoice!.amountDue.toFixed(2)}
+                      {formatStableCurrency(invoice!.amountDue)}
                     </div>
                     {/* REQ-0210 — cancelled/refunded: show collected history, not "Paid in full" */}
                     {invoice!.amountPaid > 0 && (
@@ -397,11 +397,11 @@ export default function InvoiceDetailPage({
                               : "text-emerald-600 dark:text-emerald-400",
                           )}
                         >
-                          ${invoice!.amountPaid.toFixed(2)}
+                          {formatStableCurrency(invoice!.amountPaid)}
                         </span>
                         <span>/</span>
                         <span className="font-normal text-gray-600 dark:text-gray-300">
-                          ${invoice!.total.toFixed(2)}
+                          {formatStableCurrency(invoice!.total)}
                         </span>
                         {(isInvoiceCancelled || isOrderRefunded) && (
                           <span className="w-full text-xs text-rose-600 dark:text-rose-400 mt-0.5">
@@ -539,7 +539,7 @@ export default function InvoiceDetailPage({
                       tone="emerald"
                     >
                       <span className="text-emerald-600 dark:text-emerald-400 font-normal">
-                        ${Number(invoice.amountPaid).toFixed(2)}
+                        {formatStableCurrency(Number(invoice.amountPaid))}
                       </span>
                     </DetailInfoRow>
                     <DetailInfoRow
@@ -554,7 +554,7 @@ export default function InvoiceDetailPage({
                       }
                     >
                       <span className={cn("font-normal", amountDueToneClass)}>
-                        ${Number(invoice.amountDue).toFixed(2)}
+                        {formatStableCurrency(Number(invoice.amountDue))}
                       </span>
                     </DetailInfoRow>
                   </>
@@ -812,7 +812,7 @@ export default function InvoiceDetailPage({
                   trigger={
                     <Button className={glassDetailFooterButtonClass("emerald")}>
                       <CreditCard className="h-4 w-4 shrink-0" />
-                      Pay ${invoice.amountDue.toFixed(2)}
+                      Pay {formatStableCurrency(invoice.amountDue)}
                     </Button>
                   }
                 />

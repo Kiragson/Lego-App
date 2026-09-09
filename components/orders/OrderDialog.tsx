@@ -76,6 +76,7 @@ import type {
   CreateOrderInput,
 } from "@/types";
 import { computeOrderFeesFromSubtotal } from "@/lib/orders/order-fees";
+import { formatStableCurrency } from "@/lib/format";
 import { logger } from "@/lib/logger";
 import {
   CircleDollarSign,
@@ -1118,21 +1119,21 @@ export default function OrderDialog({
                           <Receipt className="h-3.5 w-3.5 shrink-0" />
                           Subtotal:
                         </span>
-                        <span>${subtotal.toFixed(2)}</span>
+                        <span>{formatStableCurrency(subtotal)}</span>
                       </div>
                       <div className="flex justify-between text-sm text-white/70">
                         <span className="inline-flex items-center gap-1.5">
                           <Percent className="h-3.5 w-3.5 shrink-0" />
                           Tax (7%):
                         </span>
-                        <span>${orderFees.taxAmount.toFixed(2)}</span>
+                        <span>{formatStableCurrency(orderFees.taxAmount)}</span>
                       </div>
                       <div className="flex justify-between text-sm text-white/70">
                         <span className="inline-flex items-center gap-1.5">
                           <Truck className="h-3.5 w-3.5 shrink-0" />
                           Shipping:
                         </span>
-                        <span>${orderFees.shippingAmount.toFixed(2)}</span>
+                        <span>{formatStableCurrency(orderFees.shippingAmount)}</span>
                       </div>
                       <div className="flex justify-between text-sm text-white/70">
                         <span className="inline-flex items-center gap-1.5">
@@ -1140,7 +1141,7 @@ export default function OrderDialog({
                           Discount ({orderFees.discountPercent}%):
                         </span>
                         <span className="text-red-400">
-                          -${orderFees.discountAmount.toFixed(2)}
+                          -{formatStableCurrency(orderFees.discountAmount)}
                         </span>
                       </div>
                       <div className="flex justify-between text-base font-medium text-white pt-2 border-t border-violet-400/20">
@@ -1148,7 +1149,7 @@ export default function OrderDialog({
                           <CircleDollarSign className="h-4 w-4 shrink-0" />
                           Total:
                         </span>
-                        <span>${total.toFixed(2)}</span>
+                        <span>{formatStableCurrency(total)}</span>
                       </div>
                     </div>
                   ) : (

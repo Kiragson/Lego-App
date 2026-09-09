@@ -27,6 +27,7 @@ import {
   createChartBarLabelRenderer,
   formatChartCurrencyLabel,
 } from "@/lib/ui/chart-point-label";
+import { formatStableCurrency } from "@/lib/format";
 import { CATALOG_STOCK_PIE_COLORS } from "@/lib/ui/catalog-insights-chart-data";
 import { DetailInfoRow } from "@/components/orders/detail";
 import { GlassCard, GlassCardBody } from "@/components/shared";
@@ -246,7 +247,7 @@ export function CatalogInsightsSection({
           >
             {!dataLoading && (
               <span className="text-emerald-600 dark:text-emerald-400">
-                ${insights.avgOrderValue.toFixed(2)}
+                {formatStableCurrency(insights.avgOrderValue)}
               </span>
             )}
           </DetailInfoRow>

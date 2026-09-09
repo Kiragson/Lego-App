@@ -47,6 +47,7 @@ import {
   ORDER_TOTAL_COLUMN_TOOLTIP,
 } from "@/lib/ui/order-invoice-column-tooltips";
 import { cn } from "@/lib/utils";
+import { formatStableCurrency } from "@/lib/format";
 
 const META_MUTED = "text-xs text-gray-600 dark:text-gray-300";
 
@@ -293,7 +294,7 @@ export const createOrderColumns = (
           );
         }
         return (
-          <span className="tabular-nums">${order.total.toFixed(2)}</span>
+          <span className="tabular-nums">{formatStableCurrency(order.total)}</span>
         );
       },
     },

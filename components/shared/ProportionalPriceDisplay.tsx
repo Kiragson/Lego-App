@@ -7,6 +7,7 @@
 
 import React from "react";
 import { cn } from "@/lib/utils";
+import { formatStableCurrency } from "@/lib/format";
 
 export type ProportionalPriceDisplayProps = {
   /** Catalog/list line subtotal before tax/shipping/discount. */
@@ -28,7 +29,7 @@ export const PROPORTIONAL_PRICE_FINAL_CLASS = "text-sm sm:text-base";
 export const PROPORTIONAL_PRICE_STRIKE_CLASS = "text-xs sm:text-sm";
 
 function formatMoney(amount: number): string {
-  return `$${Number(amount).toFixed(2)}`;
+  return formatStableCurrency(Number(amount));
 }
 
 /**

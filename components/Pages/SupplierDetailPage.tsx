@@ -74,7 +74,7 @@ import {
   useSyncSsrQueryData,
 } from "@/lib/react-query";
 import { cn } from "@/lib/utils";
-import { toDateOrNull } from "@/lib/format";
+import { formatStableCurrency, toDateOrNull } from "@/lib/format";
 import {
   TYPO_BODY_MUTED,
   TYPO_CARD_TITLE,
@@ -472,7 +472,7 @@ export default function SupplierDetailPage({
                   >
                     {!dataLoading && (
                       <span className="text-emerald-600 dark:text-emerald-400">
-                        ${stats.totalRevenue.toFixed(2)}
+                        {formatStableCurrency(stats.totalRevenue)}
                       </span>
                     )}
                   </DetailInfoRow>
@@ -493,7 +493,7 @@ export default function SupplierDetailPage({
                     {!dataLoading && (
                       <span className="inline-flex flex-wrap items-baseline gap-x-1.5">
                         <span className="text-sky-600 dark:text-sky-400">
-                          ${(stats.totalValue ?? 0).toFixed(2)}
+                          {formatStableCurrency(stats.totalValue ?? 0)}
                         </span>
                         <span className={cn("text-xs", TYPO_BODY_MUTED)}>
                           (price × on-hand qty)

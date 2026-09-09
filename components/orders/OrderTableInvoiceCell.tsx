@@ -17,6 +17,7 @@ import {
   type InvoiceEventSource,
 } from "@/lib/orders/invoice-event-date";
 import { cn } from "@/lib/utils";
+import { formatStableCurrency } from "@/lib/format";
 
 const META_MUTED = "text-xs text-gray-600 dark:text-gray-300";
 
@@ -80,8 +81,8 @@ export function OrderTableInvoiceCell({
               : "text-green-600 dark:text-green-400",
           )}
         >
-          <CircleDollarSign className="h-3 w-3 shrink-0" aria-hidden />$
-          {amountDue.toFixed(2)}
+          <CircleDollarSign className="h-3 w-3 shrink-0" aria-hidden />
+          {formatStableCurrency(amountDue)}
         </span>
         {secondary ? (
           <>

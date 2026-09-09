@@ -6,8 +6,8 @@
 import { z } from "zod";
 
 /**
- * Create Invoice Schema
- * Validates invoice creation from order
+ * Create Invoice Schema — tax/shipping/discount optional for client compat;
+ * prisma createInvoice ignores them (order fees only).
  */
 export const createInvoiceSchema = z.object({
   orderId: z.string().min(1, "Order ID is required"),

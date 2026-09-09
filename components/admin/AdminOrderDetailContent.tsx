@@ -54,7 +54,7 @@ import { useToast } from "@/hooks/use-toast";
 import type { Order } from "@/types";
 import type { OrderReviewContext } from "@/lib/server/order-review-context-data";
 import { cn } from "@/lib/utils";
-import { toDateOrNull } from "@/lib/format";
+import { formatStableCurrency, toDateOrNull } from "@/lib/format";
 import { OrderTrackingInfo, ShippingManagement } from "@/components/shipping";
 import { AlertDialogWrapper } from "@/components/dialogs";
 import {
@@ -405,7 +405,8 @@ export default function AdminOrderDetailContent({
                         label="Payment:"
                         tone="amber"
                       >
-                        Partial payment — total ${order.total.toFixed(2)}
+                        Partial payment — total{" "}
+                        {formatStableCurrency(order.total)}
                         {order.invoiceForOrder && (
                           <>
                             {" · "}

@@ -5,7 +5,10 @@
 
 import type { ErrorEvent, EventHint } from "@sentry/nextjs";
 
-/** First-party tunnel; browser sends events here instead of ingest.de.sentry.io */
+/** First-party tunnel; browser sends events here instead of ingest.de.sentry.io.
+ * Intermittent HTTP 429 on this path is usually Vercel/Sentry rate limiting under
+ * envelope bursts — successful 200s still ingest. Do not disable the tunnel for 429 alone.
+ */
 export const SENTRY_TUNNEL_PATH = "/api/monitoring" as const;
 
 /** DSN from env (never hardcode in source) */

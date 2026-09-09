@@ -15,6 +15,7 @@ import type { Order } from "@/types";
 import { cn } from "@/lib/utils";
 import { DETAIL_DATA_VALUE_CLASS } from "@/lib/ui/typography-scale";
 import { GlassCard, variantConfig } from "./order-detail-primitives";
+import { formatStableCurrency } from "@/lib/format";
 
 export type OrderSummaryCardProps = {
   order?: Order;
@@ -74,27 +75,27 @@ export function OrderSummaryCard({
           icon={Receipt}
           label="Subtotal:"
           loading={dataLoading}
-          value={`$${Number(order!.subtotal).toFixed(2)}`}
+          value={formatStableCurrency(Number(order!.subtotal))}
         />
         {!dataLoading && order!.tax != null && order!.tax > 0 && (
           <SummaryRow
             icon={Percent}
             label="Tax:"
-            value={`$${Number(order!.tax).toFixed(2)}`}
+            value={formatStableCurrency(Number(order!.tax))}
           />
         )}
         {!dataLoading && order!.shipping != null && order!.shipping > 0 && (
           <SummaryRow
             icon={Truck}
             label="Shipping:"
-            value={`$${Number(order!.shipping).toFixed(2)}`}
+            value={formatStableCurrency(Number(order!.shipping))}
           />
         )}
         {!dataLoading && order!.discount != null && order!.discount > 0 && (
           <SummaryRow
             icon={Tag}
             label="Discount:"
-            value={`-$${Number(order!.discount).toFixed(2)}`}
+            value={"-" + formatStableCurrency(Number(order!.discount))}
             valueClassName="text-rose-600 dark:text-rose-400"
           />
         )}
@@ -109,7 +110,7 @@ export function OrderSummaryCard({
             {dataLoading ? (
               <DataSlotPulse variant="currency" />
             ) : (
-              `$${Number(order!.total).toFixed(2)}`
+              formatStableCurrency(Number(order!.total))
             )}
           </span>
         </div>

@@ -119,11 +119,11 @@ export async function createInvoice(
   // Generate unique invoice number
   const invoiceNumber = await generateInvoiceNumber();
 
-  // Calculate invoice amounts based on order (include shipping for order ↔ invoice transparency)
+  // Server-authoritative fees from order only (ignore client tax/shipping/discount — order fee parity)
   const subtotal = order.subtotal;
-  const tax = data.tax ?? order.tax ?? 0;
-  const shipping = data.shipping ?? order.shipping ?? 0;
-  const discount = data.discount ?? order.discount ?? 0;
+  const tax = order.tax ?? 0;
+  const shipping = order.shipping ?? 0;
+  const discount = order.discount ?? 0;
   const total = Math.max(0, subtotal + tax + shipping - discount);
 
   // Parse due date
@@ -513,37 +513,13 @@ export async function updateInvoice(
     updatedBy: userId,
   };
 
-  // Update fields if provided
+  // Update fields if provided (fees + total locked to create-time order money; ignore client fee/total)
   if (data.status) updateData.status = data.status;
-  if (data.tax !== undefined) updateData.tax = data.tax > 0 ? data.tax : null;
-  if (data.shipping !== undefined)
-    updateData.shipping = data.shipping > 0 ? data.shipping : null;
-  if (data.discount !== undefined)
-    updateData.discount = data.discount > 0 ? data.discount : null;
-
-  // Derive total = subtotal + tax + shipping - discount when tax, shipping, or discount change (run before amountPaid so "paid" check uses correct total)
-  if (data.tax !== undefined || data.shipping !== undefined || data.discount !== undefined) {
-    const subtotalVal = existingInvoice.subtotal ?? 0;
-    const taxVal = (data.tax ?? existingInvoice.tax) ?? 0;
-    const shippingVal = (data.shipping ?? existingInvoice.shipping) ?? 0;
-    const discountVal = (data.discount ?? existingInvoice.discount) ?? 0;
-    const derivedTotal = Math.max(0, subtotalVal + taxVal + shippingVal - discountVal);
-    updateData.total = derivedTotal;
-    const amountPaidVal = data.amountPaid ?? existingInvoice.amountPaid;
-    updateData.amountDue = Math.max(0, derivedTotal - amountPaidVal);
-  } else if (data.total !== undefined) {
-    updateData.total = data.total;
-    const amountPaidVal = data.amountPaid ?? existingInvoice.amountPaid;
-    updateData.amountDue = Math.max(0, data.total - amountPaidVal);
-  }
 
   if (data.amountPaid !== undefined) {
     updateData.amountPaid = data.amountPaid;
-    // Recalculate amount due: total - amountPaid (use derived total when set, else data.total or existing)
-    const total =
-      (updateData.total as number) ??
-      data.total ??
-      existingInvoice.total;
+    // Recalculate amount due against existing invoice total (order-authoritative)
+    const total = existingInvoice.total;
     const amountDue = total - data.amountPaid;
     updateData.amountDue = Math.max(0, amountDue);
 
@@ -560,15 +536,8 @@ export async function updateInvoice(
     }
   }
 
-  // Only apply client-sent amountDue when neither amountPaid nor total nor tax/shipping/discount were updated
-  if (
-    data.amountDue !== undefined &&
-    data.amountPaid === undefined &&
-    data.total === undefined &&
-    data.tax === undefined &&
-    data.shipping === undefined &&
-    data.discount === undefined
-  ) {
+  // amountDue only when not settling via amountPaid
+  if (data.amountDue !== undefined && data.amountPaid === undefined) {
     updateData.amountDue = data.amountDue;
   }
   if (data.dueDate) updateData.dueDate = new Date(data.dueDate);

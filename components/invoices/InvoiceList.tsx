@@ -14,7 +14,6 @@ import React, {
 } from "react";
 import dynamic from "next/dynamic";
 import { usePathname } from "next/navigation";
-import { PaginationType } from "@/components/shared/PaginationSelector";
 import { createInvoiceColumns } from "./InvoiceTableColumns";
 import { useAuth } from "@/contexts";
 import {
@@ -24,6 +23,7 @@ import {
   useClientPortalDashboard,
   useSupplierPortalDashboard,
 } from "@/hooks/queries";
+import { useTypedListSearch } from "@/hooks/use-typed-list-search";
 import {
   isDataSlotLoading,
   isDataSlotUnsettled,
@@ -110,11 +110,8 @@ const InvoiceList = React.memo(
     const { user } = useAuth();
     const role = user?.role;
 
-    const [searchTerm, setSearchTerm] = useState("");
-    const [pagination, setPagination] = useState<PaginationType>({
-      pageIndex: 0,
-      pageSize: 8,
-    });
+    const { searchTerm, setSearchTerm, pagination, setPagination } =
+      useTypedListSearch();
     const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
     const [invoiceSourceFilter, setInvoiceSourceFilter] =
       useState<InvoiceSourceFilterValue>("both");

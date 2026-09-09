@@ -9,10 +9,10 @@ import React, {
 } from "react";
 import dynamic from "next/dynamic";
 import { usePathname } from "next/navigation";
-import { PaginationType } from "@/components/shared/PaginationSelector";
 import { createWarehouseColumns } from "./WarehouseTableColumns";
 import { useAuth } from "@/contexts";
 import { useWarehouses, useDashboard, useWarehouseStockSummary } from "@/hooks/queries";
+import { useTypedListSearch } from "@/hooks/use-typed-list-search";
 import { isDataSlotLoading, isDataSlotUnsettled, queryKeys, useSyncSsrQueryData } from "@/lib/react-query";
 import { APP_SHELL_WIDTH_CLASS } from "@/lib/ui/shell-layout-styles";
 import WarehouseFilters from "./WarehouseFilters";
@@ -126,11 +126,8 @@ export default function WarehouseList({
     }
   }, []);
 
-  const [searchTerm, setSearchTerm] = useState("");
-  const [pagination, setPagination] = useState<PaginationType>({
-    pageIndex: 0,
-    pageSize: 8,
-  });
+  const { searchTerm, setSearchTerm, pagination, setPagination } =
+    useTypedListSearch();
   const [statusFilter, setStatusFilter] = useState<
     "all" | "active" | "inactive"
   >("all");

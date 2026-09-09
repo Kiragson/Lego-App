@@ -3,10 +3,10 @@
 import React, { useState, useMemo, useCallback } from "react";
 import dynamic from "next/dynamic";
 import { usePathname } from "next/navigation";
-import { PaginationType } from "@/components/shared/PaginationSelector";
 import { createCategoryColumns } from "./CategoryTableColumns";
 import { useAuth } from "@/contexts";
 import { useCategories, useDashboard } from "@/hooks/queries";
+import { useTypedListSearch } from "@/hooks/use-typed-list-search";
 import { isDataSlotLoading, isDataSlotUnsettled, queryKeys, useSyncSsrQueryData } from "@/lib/react-query";
 import { APP_SHELL_WIDTH_CLASS } from "@/lib/ui/shell-layout-styles";
 import CategoryFilters from "./CategoryFilters";
@@ -66,11 +66,8 @@ const CategoryList = React.memo(function CategoryList({
     initialCategories,
   );
 
-  const [searchTerm, setSearchTerm] = useState("");
-  const [pagination, setPagination] = useState<PaginationType>({
-    pageIndex: 0,
-    pageSize: 8,
-  });
+  const { searchTerm, setSearchTerm, pagination, setPagination } =
+    useTypedListSearch();
   const [statusFilter, setStatusFilter] = useState<
     "all" | "active" | "inactive"
   >("all");

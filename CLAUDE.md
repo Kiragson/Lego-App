@@ -146,6 +146,15 @@ All user-facing POST/PUT JSON bodies use `safeParse` + `logger.warn` on fail. Ne
 | 0235 | Hydration observe-only — do **not** blanket-scrub “Hydration failed” |
 | 0237–0239 | Money UI → `formatStableCurrency` (`@/lib/format`) on home/lists/portals/admin/BI |
 
+### Prod harden (Gate 2 path, 2026-09-09)
+
+| Piece | Location |
+|-------|----------|
+| Typed list URL | `lib/navigation/list-search-params.ts` + `hooks/use-typed-list-search.ts` — Zod `page`/`pageSize`/`q`; shallow `replaceState`; wired on catalog + order/invoice lists |
+| Invoice fee lock | `prisma/invoice.ts` — create/update ignore client tax/shipping/discount/total (order-authoritative) |
+| Currency | Further `formatStableCurrency` on Pay CTAs, PaymentDialog display, order/invoice summary cards |
+| Monitoring 429 | Comment on `SENTRY_TUNNEL_PATH` — rate-limit noise; tunnel kept |
+
 Open tracker: [`docs/SENTRY_ERRORS.md`](docs/SENTRY_ERRORS.md) (OPEN-1 Gate 2 / OPEN-2 observe / OPEN-4 leave).
 
 **AI insights:** `lib/ai/create-chat-completion.ts` (`createChatCompletion`, `isLlmConfigured`). Env: `OPENROUTER_API_KEY`, optional `GROQ_API_KEY` + `GROQ_MODEL`. Groq chain in `lib/ai/groq.ts`: `gpt-oss-20b` → `gpt-oss-120b` → `qwen3.8-27b` (REQ-0231; llama + qwen3.6 remapped). Routes: `POST /api/ai/insights`, `POST /api/forecasting`.

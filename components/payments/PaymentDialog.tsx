@@ -45,6 +45,7 @@ import { ProductThumb } from "@/components/products/ProductOptionRow";
 import { InvoiceSummaryRow } from "@/components/invoices/detail/InvoiceSummaryCard";
 import { validateCheckoutChargeAmount } from "@/lib/validations/payment";
 import { buildStripeCheckoutReturnUrls } from "@/lib/payments/stripe-checkout-return-urls";
+import { formatStableCurrency } from "@/lib/format";
 
 interface PaymentDialogProps {
   type: CheckoutType;
@@ -161,7 +162,7 @@ export default function PaymentDialog({
         {trigger || (
           <Button disabled={disabled}>
             <CreditCard className="mr-2 h-4 w-4" />
-            Pay ${remainingDue.toFixed(2)}
+            Pay {formatStableCurrency(remainingDue)}
           </Button>
         )}
       </DialogTrigger>
@@ -210,7 +211,7 @@ export default function PaymentDialog({
                         <span className="text-white truncate">{item.name}</span>
                       </span>
                       <span className="font-medium text-white shrink-0">
-                        ${item.price.toFixed(2)}
+                        {formatStableCurrency(item.price)}
                       </span>
                     </div>
                   ))}
@@ -234,14 +235,14 @@ export default function PaymentDialog({
                 <InvoiceSummaryRow
                   icon={Receipt}
                   label="Subtotal:"
-                  value={`$${displaySubtotal.toFixed(2)}`}
+                  value={formatStableCurrency(displaySubtotal)}
                   variant="glass"
                 />
                 {tax != null && tax > 0 && (
                   <InvoiceSummaryRow
                     icon={Percent}
                     label="Tax:"
-                    value={`$${tax.toFixed(2)}`}
+                    value={formatStableCurrency(tax)}
                     variant="glass"
                   />
                 )}
@@ -249,7 +250,7 @@ export default function PaymentDialog({
                   <InvoiceSummaryRow
                     icon={Truck}
                     label="Shipping:"
-                    value={`$${shipping.toFixed(2)}`}
+                    value={formatStableCurrency(shipping)}
                     variant="glass"
                   />
                 )}
@@ -257,7 +258,7 @@ export default function PaymentDialog({
                   <InvoiceSummaryRow
                     icon={Tag}
                     label="Discount:"
-                    value={`-$${discount.toFixed(2)}`}
+                    value={"-" + formatStableCurrency(discount)}
                     valueClassName="text-emerald-400"
                     variant="glass"
                   />
@@ -266,7 +267,7 @@ export default function PaymentDialog({
                   <InvoiceSummaryRow
                     icon={CircleDollarSign}
                     label="Already paid:"
-                    value={`$${paidSoFar.toFixed(2)}`}
+                    value={formatStableCurrency(paidSoFar)}
                     valueClassName="text-emerald-400"
                     variant="glass"
                   />
@@ -281,10 +282,10 @@ export default function PaymentDialog({
                   {paidSoFar > 0 ? "Amount due" : "Total"}
                 </span>
                 <span className="text-white">
-                  ${remainingDue.toFixed(2)}
+                  {formatStableCurrency(remainingDue)}
                   {paidSoFar > 0 && displayTotal > 0 ? (
                     <span className="ml-1 text-xs font-normal text-white/70">
-                      / ${displayTotal.toFixed(2)}
+                      / {formatStableCurrency(displayTotal)}
                     </span>
                   ) : null}
                 </span>
@@ -302,7 +303,7 @@ export default function PaymentDialog({
                     Pay partially
                   </Label>
                   <p className="text-xs text-white/70 mt-0.5">
-                    Off = pay full remaining (${remainingDue.toFixed(2)})
+                    Off = pay full remaining ({formatStableCurrency(remainingDue)})
                   </p>
                 </div>
                 <Switch
@@ -351,7 +352,7 @@ export default function PaymentDialog({
                 ) : (
                   <p className="text-xs text-white/60">
                     {payPartial
-                      ? `Enter any amount up to $${remainingDue.toFixed(2)}`
+                      ? `Enter any amount up to ${formatStableCurrency(remainingDue)}`
                       : "Full remaining balance will be charged"}
                   </p>
                 )}
@@ -390,7 +391,7 @@ export default function PaymentDialog({
                   pendingLabel="Redirecting to payment…"
                   label={
                     Number.isFinite(chargeAmount) && chargeAmount > 0
-                      ? `Pay $${chargeAmount.toFixed(2)}`
+                      ? `Pay ${formatStableCurrency(chargeAmount)}`
                       : "Secure checkout with Link"
                   }
                   icon={CreditCard}

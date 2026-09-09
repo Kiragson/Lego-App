@@ -678,3 +678,9 @@
 | ART-0239a | REQ-0239 | BusinessInsightPage averagePrice/valueDensity | toFixed→stable |
 | ART-0239b | REQ-0239 | docs/SENTRY_ERRORS.md 0239 closed | docs |
 | TC-0239 | REQ-0239 | lint ✓ test 815 ✓ invalidate 222 ✓ tsc ✓ build ✓ | PASS |
+
+| ART-0009h1 | REQ-0009 | lib/navigation/list-search-params.ts + useTypedListSearch | Zod URL list state |
+| ART-0009h2 | REQ-0009 | Product/Order/Invoice/Category/Supplier/Warehouse lists | URL page/q sync |
+| ART-0009h3 | REQ-0009 | prisma/invoice.ts fee lock | ignore client fees/total |
+| ART-0009h4 | REQ-0009 | formatStableCurrency Pay/detail/dialog sweep | hydration-safe $ |
+| TC-0009h | REQ-0009 | lint ✓ tsc ✓ vitest 12 ✓ invalidate 222 ✓ security PASS | harden W1–W5 |
