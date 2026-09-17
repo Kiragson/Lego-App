@@ -4,249 +4,213 @@ import Link from "next/link";
 import { useState } from "react";
 import { ArrowLeft, Save } from "lucide-react";
 
-const SET_TYPES = [
-  {
-    value: "STANDARD",
-    label: "Standard",
-  },
-  {
-    value: "MINIFIG",
-    label: "Minifigure",
-  },
-  {
-    value: "MOC",
-    label: "MOC",
-  },
-];
-
 export default function NewSetPage() {
-  const [setNumber, setSetNumber] = useState("");
+  const [rebrickableSetNum, setRebrickableSetNum] = useState("");
   const [name, setName] = useState("");
-  const [type, setType] = useState("STANDARD");
-  const [description, setDescription] = useState("");
-  const [imageUrl, setImageUrl] = useState("");
+  const [year, setYear] = useState("");
+  const [numParts, setNumParts] = useState("");
+  const [themeId, setThemeId] = useState("");
+
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
 
-  async function handleSubmit(
-  event: any,
-) {
-  console.log("SAVE SET CLICKED");
-  event.preventDefault();
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
 
-  setSaving(true);
+    setSaving(true);
+    setError("");
 
-  try {
-    const response = await fetch("/api/catalog/sets", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        setNumber,
-        name,
-        type,
-        description,
-        imageUrl,
-      }),
-    });
+    try {
+      const response = await fetch("/api/catalog/sets", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          rebrickableSetNum: rebrickableSetNum.trim(),
+          name: name.trim(),
+          year: Number(year),
+          numParts: numParts ? Number(numParts) : null,
+          themeId: themeId.trim() || null,
+        }),
+      });
 
-    const data = await response.json();
+      const data = await response.json();
 
-    if (!response.ok) {
-      throw new Error(data.error || "Failed to create set");
+      if (!response.ok) {
+        throw new Error(data.error || "Nie udało się utworzyć zestawu.");
+      }
+
+      window.location.href = `/catalog/sets/${data.id}`;
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Wystąpił nieznany błąd."
+      );
+    } finally {
+      setSaving(false);
     }
-
-    window.location.href = "/catalog/sets";
-  } catch (error) {
-    console.error(error);
-
-    alert(
-      error instanceof Error
-        ? error.message
-        : "Failed to create set",
-    );
-  } finally {
-    setSaving(false);
   }
-}
 
   return (
-    <div className="space-y-6 p-6">
-      {/* Header */}
-      <div className="flex items-center gap-4">
-        <Link
-          href="/catalog/sets"
-          className="inline-flex h-9 w-9 items-center justify-center rounded-md border hover:bg-muted"
-          aria-label="Back to sets"
-        >
-          <ArrowLeft className="h-4 w-4" />
-        </Link>
-
+    <div className="min-h-screen bg-amber-50/20 p-4 sm:p-6 lg:p-8">
+      <div className="mx-auto max-w-3xl space-y-6">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">
-            Add LEGO Set
-          </h1>
+          <Link
+            href="/catalog/sets"
+            className="inline-flex items-center gap-2 text-sm font-medium text-zinc-500 transition-colors hover:text-amber-700"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back to sets
+          </Link>
 
-          <p className="mt-1 text-sm text-muted-foreground">
-            Add a new set definition to the LEGO catalog.
-          </p>
-        </div>
-      </div>
+          <div className="mt-4">
+            <span className="inline-block rounded-full bg-amber-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-amber-700">
+              Katalog
+            </span>
 
-      {/* Form */}
-      <form onSubmit={handleSubmit} className="max-w-3xl space-y-6">
-        <div className="rounded-lg border bg-card">
-          <div className="border-b px-6 py-4">
-            <h2 className="font-medium">Basic information</h2>
+            <h1 className="mt-2 text-2xl font-extrabold tracking-tight text-zinc-900 sm:text-3xl">
+              Add LEGO set
+            </h1>
 
-            <p className="mt-1 text-sm text-muted-foreground">
-              Information identifying this LEGO set.
+            <p className="mt-1 text-sm text-zinc-500">
+              Dodaj zestaw do katalogu.
             </p>
           </div>
+        </div>
 
-          <div className="space-y-5 p-6">
-            {/* Set number */}
-            <div className="space-y-2">
+        <form
+          onSubmit={handleSubmit}
+          className="rounded-2xl border border-amber-900/10 bg-white p-6 shadow-sm sm:p-8"
+        >
+          <div className="grid gap-6 sm:grid-cols-2">
+            <div className="sm:col-span-2">
               <label
-                htmlFor="setNumber"
-                className="text-sm font-medium"
+                htmlFor="rebrickableSetNum"
+                className="block text-sm font-semibold text-zinc-800"
               >
-                Set number
+                Rebrickable set number
               </label>
 
               <input
-                id="setNumber"
-                name="setNumber"
-                type="text"
-                value={setNumber}
-                onChange={(event) => setSetNumber(event.target.value)}
-                placeholder="e.g. 75375"
-                className="w-full rounded-md border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring"
+                id="rebrickableSetNum"
+                value={rebrickableSetNum}
+                onChange={(event) =>
+                  setRebrickableSetNum(event.target.value)
+                }
+                required
+                placeholder="np. 10281-1"
+                className="mt-2 w-full rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20"
               />
-
-              <p className="text-xs text-muted-foreground">
-                LEGO set number, for example 75375.
-              </p>
             </div>
 
-            {/* Name */}
-            <div className="space-y-2">
+            <div className="sm:col-span-2">
               <label
                 htmlFor="name"
-                className="text-sm font-medium"
+                className="block text-sm font-semibold text-zinc-800"
               >
                 Name
               </label>
 
               <input
                 id="name"
-                name="name"
-                type="text"
-                required
                 value={name}
                 onChange={(event) => setName(event.target.value)}
-                placeholder="e.g. Millennium Falcon"
-                className="w-full rounded-md border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring"
+                required
+                placeholder="np. Bonsai Tree"
+                className="mt-2 w-full rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20"
               />
             </div>
 
-            {/* Type */}
-            <div className="space-y-2">
+            <div>
               <label
-                htmlFor="type"
-                className="text-sm font-medium"
+                htmlFor="year"
+                className="block text-sm font-semibold text-zinc-800"
               >
-                Set type
-              </label>
-
-              <select
-                id="type"
-                name="type"
-                value={type}
-                onChange={(event) => setType(event.target.value)}
-                className="w-full rounded-md border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring"
-              >
-                {SET_TYPES.map((setType) => (
-                  <option
-                    key={setType.value}
-                    value={setType.value}
-                  >
-                    {setType.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Description */}
-            <div className="space-y-2">
-              <label
-                htmlFor="description"
-                className="text-sm font-medium"
-              >
-                Description
-              </label>
-
-              <textarea
-                id="description"
-                name="description"
-                rows={5}
-                value={description}
-                onChange={(event) =>
-                  setDescription(event.target.value)
-                }
-                placeholder="Optional description..."
-                className="w-full resize-y rounded-md border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring"
-              />
-            </div>
-
-            {/* Image URL */}
-            <div className="space-y-2">
-              <label
-                htmlFor="imageUrl"
-                className="text-sm font-medium"
-              >
-                Image URL
+                Year
               </label>
 
               <input
-                id="imageUrl"
-                name="imageUrl"
-                type="url"
-                value={imageUrl}
-                onChange={(event) =>
-                  setImageUrl(event.target.value)
-                }
-                placeholder="https://..."
-                className="w-full rounded-md border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring"
+                id="year"
+                type="number"
+                value={year}
+                onChange={(event) => setYear(event.target.value)}
+                required
+                min="1900"
+                max="2100"
+                placeholder="2021"
+                className="mt-2 w-full rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20"
+              />
+            </div>
+
+            <div>
+              <label
+                htmlFor="numParts"
+                className="block text-sm font-semibold text-zinc-800"
+              >
+                Number of parts
+              </label>
+
+              <input
+                id="numParts"
+                type="number"
+                value={numParts}
+                onChange={(event) => setNumParts(event.target.value)}
+                min="0"
+                placeholder="878"
+                className="mt-2 w-full rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20"
+              />
+            </div>
+
+            <div className="sm:col-span-2">
+              <label
+                htmlFor="themeId"
+                className="block text-sm font-semibold text-zinc-800"
+              >
+                Theme ID
+              </label>
+
+              <input
+                id="themeId"
+                value={themeId}
+                onChange={(event) => setThemeId(event.target.value)}
+                placeholder="UUID motywu — opcjonalne"
+                className="mt-2 w-full rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20"
               />
 
-              <p className="text-xs text-muted-foreground">
-                Optional. Image upload can be added later.
+              <p className="mt-2 text-xs text-zinc-400">
+                Na tym etapie podajemy UUID motywu bezpośrednio. Później
+                zastąpimy to wyborem z listy Theme.
               </p>
             </div>
           </div>
-        </div>
 
-        {/* Actions */}
-        <div className="flex items-center justify-end gap-3">
-          <Link
-            href="/catalog/sets"
-            className="rounded-md border px-4 py-2 text-sm font-medium hover:bg-muted"
-          >
-            Cancel
-          </Link>
+          {error && (
+            <div className="mt-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+              {error}
+            </div>
+          )}
 
-          <button
-            type="submit"
-            disabled={saving || !name.trim()}
-            className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            <Save className="h-4 w-4" />
+          <div className="mt-8 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+            <Link
+              href="/catalog/sets"
+              className="inline-flex items-center justify-center rounded-xl border border-zinc-200 px-4 py-2.5 text-sm font-semibold text-zinc-700 transition-colors hover:bg-zinc-50"
+            >
+              Cancel
+            </Link>
 
-            {saving ? "Saving..." : "Save set"}
-          </button>
-        </div>
-      </form>
+            <button
+              type="submit"
+              disabled={saving}
+              className="inline-flex items-center justify-center gap-2 rounded-xl bg-amber-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-amber-700 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              <Save className="h-4 w-4" />
+              {saving ? "Saving..." : "Save set"}
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }

@@ -60,3 +60,5 @@ PROJECT_PLAN.md
 
 # Sentry Errors
 SENTRY_ERRORS.md
+# Rebrickable source data
+/data/rebrickable/*.csv

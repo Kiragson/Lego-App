@@ -7,58 +7,53 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum SetType {
-  SET
-  GIFT_WITH_PURCHASE
-  PROMOTIONAL
-  OTHER
-}
+// ============================================================
+// ENUMS
+// ============================================================
 
-enum SetCondition {
+enum CollectionSetCondition {
   NEW
   USED
-  MIXED
 }
 
-enum PartsSource {
-  ORIGINAL
-  REPLACEMENT
-  MIXED
+enum CollectionSetBuildStatus {
+  ASSEMBLED
+  DISASSEMBLED
 }
 
-enum SetBuildStatus {
-  NOT_BUILT
-  IN_PROGRESS
-  BUILT
-}
-
-enum ElementType {
-  PART
-  MINIFIG
-  BOOK
-  STICKER
-  BOX
-  OTHER
-}
-
-enum SetElementSourceType {
+enum CollectionSetPartsSource {
   ORIGINAL_SET
-  REPLACEMENT
+  OWNED_PARTS
+  MIXED
+}
+
+enum CollectionPartSourceType {
+  SET
+  SPARE_PART
+  PURCHASE
+  MOC
   OTHER
 }
 
-enum CollectionElementSourceType {
-  SET
-  PURCHASE
-  TRADE
+enum ExternalSource {
+  REBRICKABLE
+  BRICKLINK
+  LEGO
+  LDRAW
+  BRICKOWL
   OTHER
 }
+
+// ============================================================
+// USER
+// ============================================================
 
 model User {
-  id        String   @id @default(uuid()) @db.Uuid
-  email     String   @unique
-  name      String?
-  passwordHash String
+  id           String  @id @default(uuid()) @db.Uuid
+  email        String  @unique
+  passwordHash String?
+  name         String?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -67,304 +62,597 @@ model User {
   @@map("users")
 }
 
+// ============================================================
+// COLLECTION
+// ============================================================
+
 model Collection {
-  id        String   @id @default(uuid()) @db.Uuid
-  userId    String   @db.Uuid
-  name      String
+  id     String @id @default(uuid()) @db.Uuid
+  userId String @db.Uuid
+
+  name        String
+  description String?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  sets     CollectionSet[]
-  elements CollectionElement[]
+  sets             CollectionSet[]
+  parts            CollectionPart[]
+  storageLocations StorageLocation[]
 
   @@index([userId])
   @@map("collections")
 }
 
-model SetClass {
-  id        String   @id @default(uuid()) @db.Uuid
-  name      String   @unique
+// ============================================================
+// THEMES
+// ============================================================
+
+model Theme {
+  id String @id @default(uuid()) @db.Uuid
+
+  rebrickableId Int    @unique
+  name          String
+
+  parentId String? @db.Uuid
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  parent Theme? @relation("ThemeHierarchy", fields: [parentId], references: [id], onDelete: SetNull)
+
+  children Theme[] @relation("ThemeHierarchy")
 
   sets Set[]
 
-  @@map("set_classes")
+  @@index([parentId])
+  @@index([name])
+  @@map("themes")
 }
 
-model Set {
-  id               String       @id @default(uuid()) @db.Uuid
-  setNumber        String       @unique
-  name             String
-  setType          SetType      @default(SET)
-  condition        SetCondition @default(NEW)
-  partsSource      PartsSource  @default(ORIGINAL)
-  buildStatus      SetBuildStatus @default(NOT_BUILT)
-  year             Int?
-  pieceCount       Int?
-  minifigCount     Int?
-  imageUrl         String?
-  description      String?
-  setClassId       String?      @db.Uuid
-  createdAt        DateTime     @default(now())
-  updatedAt        DateTime     @updatedAt
+// ============================================================
+// PART CATEGORIES
+// ============================================================
 
-  setClass SetClass? @relation(fields: [setClassId], references: [id], onDelete: SetNull)
+model PartCategory {
+  id String @id @default(uuid()) @db.Uuid
 
-  collectionSets CollectionSet[]
-  elements       SetElement[]
-  relationsFrom  SetRelation[] @relation("SetRelationParent")
-  relationsTo    SetRelation[] @relation("SetRelationChild")
-
-  @@index([setClassId])
-  @@index([year])
-  @@map("sets")
-}
-
-model CollectionSet {
-  id           String   @id @default(uuid()) @db.Uuid
-  collectionId String   @db.Uuid
-  setId        String   @db.Uuid
-  quantity     Int      @default(1)
-  notes        String?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-
-  collection Collection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
-  set        Set        @relation(fields: [setId], references: [id], onDelete: Cascade)
-
-  elements  CollectionSetElement[]
-  relationsFrom CollectionSetRelation[] @relation("CollectionSetRelationParent")
-  relationsTo   CollectionSetRelation[] @relation("CollectionSetRelationChild")
-
-  @@unique([collectionId, setId])
-  @@index([setId])
-  @@map("collection_sets")
-}
-
-model SetElement {
-  id        String   @id @default(uuid()) @db.Uuid
-  setId     String   @db.Uuid
-  elementId String   @db.Uuid
-  quantity  Int      @default(1)
-  notes     String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  set     Set     @relation(fields: [setId], references: [id], onDelete: Cascade)
-  element Element @relation(fields: [elementId], references: [id], onDelete: Cascade)
-
-  sources SetElementSource[]
-
-  @@unique([setId, elementId])
-  @@index([elementId])
-  @@map("set_elements")
-}
-
-model CollectionSetElement {
-  id                String   @id @default(uuid()) @db.Uuid
-  collectionSetId   String   @db.Uuid
-  elementId         String   @db.Uuid
-  quantity          Int      @default(1)
-  notes             String?
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-
-  collectionSet CollectionSet @relation(fields: [collectionSetId], references: [id], onDelete: Cascade)
-  element       Element       @relation(fields: [elementId], references: [id], onDelete: Cascade)
-
-  sources CollectionSetElementSource[]
-
-  @@unique([collectionSetId, elementId])
-  @@index([elementId])
-  @@map("collection_set_elements")
-}
-
-model SetElementSource {
-  id           String              @id @default(uuid()) @db.Uuid
-  setElementId String              @db.Uuid
-  sourceType   SetElementSourceType
-  sourceId     String?
-  quantity     Int                 @default(1)
-  notes        String?
-  createdAt    DateTime            @default(now())
-  updatedAt    DateTime            @updatedAt
-
-  setElement SetElement @relation(fields: [setElementId], references: [id], onDelete: Cascade)
-
-  @@index([setElementId])
-  @@map("set_element_sources")
-}
-
-model CollectionSetElementSource {
-  id                     String                      @id @default(uuid()) @db.Uuid
-  collectionSetElementId String                      @db.Uuid
-  sourceType              SetElementSourceType
-  sourceId                String?
-  quantity                Int                         @default(1)
-  notes                   String?
-  createdAt               DateTime                    @default(now())
-  updatedAt               DateTime                    @updatedAt
-
-  collectionSetElement CollectionSetElement @relation(fields: [collectionSetElementId], references: [id], onDelete: Cascade)
-
-  @@index([collectionSetElementId])
-  @@map("collection_set_element_sources")
-}
-
-model SetRelation {
-  id          String   @id @default(uuid()) @db.Uuid
-  parentSetId String   @db.Uuid
-  childSetId  String   @db.Uuid
-  quantity    Int      @default(1)
-  notes       String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  parentSet Set @relation("SetRelationParent", fields: [parentSetId], references: [id], onDelete: Cascade)
-  childSet  Set @relation("SetRelationChild", fields: [childSetId], references: [id], onDelete: Cascade)
-
-  @@unique([parentSetId, childSetId])
-  @@index([childSetId])
-  @@map("set_relations")
-}
-
-model CollectionSetRelation {
-  id               String   @id @default(uuid()) @db.Uuid
-  parentCollectionSetId String @db.Uuid
-  childCollectionSetId  String @db.Uuid
-  quantity         Int      @default(1)
-  notes            String?
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
-
-  parentCollectionSet CollectionSet @relation("CollectionSetRelationParent", fields: [parentCollectionSetId], references: [id], onDelete: Cascade)
-  childCollectionSet  CollectionSet @relation("CollectionSetRelationChild", fields: [childCollectionSetId], references: [id], onDelete: Cascade)
-
-  @@unique([parentCollectionSetId, childCollectionSetId])
-  @@index([childCollectionSetId])
-  @@map("collection_set_relations")
-}
-
-model ElementColor {
-  id        String   @id @default(uuid()) @db.Uuid
-  name      String   @unique
-  rgb       String?
-  hex       String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  elements Element[]
-
-  @@map("element_colors")
-}
-
-model Category {
-  id        String   @id @default(uuid()) @db.Uuid
-  name      String   @unique
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  elements Element[]
-
-  @@map("categories")
-}
-
-model Element {
-  id            String      @id @default(uuid()) @db.Uuid
-  elementNumber String?     @unique
-  partNumber    String?
+  rebrickableId Int    @unique
   name          String
-  description   String?
-  imageUrl      String?
-  elementType   ElementType @default(PART)
-  categoryId    String?     @db.Uuid
-  colorId       String?     @db.Uuid
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
 
-  category Category?     @relation(fields: [categoryId], references: [id], onDelete: SetNull)
-  color    ElementColor? @relation(fields: [colorId], references: [id], onDelete: SetNull)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  setElements           SetElement[]
-  collectionSetElements CollectionSetElement[]
-  collectionElements    CollectionElement[]
-  storage               ElementStorage[]
+  parts Part[]
+
+  @@index([name])
+  @@map("part_categories")
+}
+
+// ============================================================
+// COLORS
+// ============================================================
+
+model Color {
+  id String @id @default(uuid()) @db.Uuid
+
+  rebrickableId Int @unique
+
+  name    String
+  rgb     String
+  isTrans Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  elements        Element[]
+  inventoryParts  InventoryPart[]
+  collectionParts CollectionPart[]
+
+  externalIds ExternalColorId[]
+
+  @@index([name])
+  @@index([rgb])
+  @@map("colors")
+}
+
+// ============================================================
+// PARTS
+// ============================================================
+
+model Part {
+  id String @id @default(uuid()) @db.Uuid
+
+  rebrickablePartNum String @unique
+
+  name String
+
+  categoryId String? @db.Uuid
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  category PartCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+
+  elements        Element[]
+  inventoryParts  InventoryPart[]
+  collectionParts CollectionPart[]
+
+  parentRelations PartRelationship[] @relation("ParentPart")
+  childRelations  PartRelationship[] @relation("ChildPart")
+
+  externalIds ExternalPartId[]
 
   @@index([categoryId])
+  @@index([name])
+  @@map("parts")
+}
+
+// ============================================================
+// ELEMENTS
+// ============================================================
+
+model Element {
+  id String @id @default(uuid()) @db.Uuid
+
+  rebrickableElementId String @unique
+
+  partId  String @db.Uuid
+  colorId String @db.Uuid
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  part  Part  @relation(fields: [partId], references: [id], onDelete: Restrict)
+  color Color @relation(fields: [colorId], references: [id], onDelete: Restrict)
+
+  externalIds ExternalElementId[]
+
+  @@index([partId])
   @@index([colorId])
-  @@index([partNumber])
+  @@unique([partId, colorId])
   @@map("elements")
 }
 
-model CollectionElement {
-  id           String   @id @default(uuid()) @db.Uuid
-  collectionId String   @db.Uuid
-  elementId    String   @db.Uuid
-  quantity     Int      @default(1)
-  notes        String?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+// ============================================================
+// PART RELATIONSHIPS
+// ============================================================
 
-  collection Collection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
-  element    Element    @relation(fields: [elementId], references: [id], onDelete: Cascade)
+model PartRelationship {
+  id String @id @default(uuid()) @db.Uuid
 
-  sources CollectionElementSource[]
+  relationshipType String
 
-  @@unique([collectionId, elementId])
-  @@index([elementId])
-  @@map("collection_elements")
+  parentPartId String @db.Uuid
+  childPartId  String @db.Uuid
+
+  createdAt DateTime @default(now())
+
+  parentPart Part @relation("ParentPart", fields: [parentPartId], references: [id], onDelete: Cascade)
+  childPart  Part @relation("ChildPart", fields: [childPartId], references: [id], onDelete: Restrict)
+
+  @@unique([relationshipType, parentPartId, childPartId])
+  @@index([parentPartId])
+  @@index([childPartId])
+  @@index([relationshipType])
+  @@map("part_relationships")
 }
 
-model CollectionElementSource {
-  id                  String                       @id @default(uuid()) @db.Uuid
-  collectionElementId String                       @db.Uuid
-  sourceType          CollectionElementSourceType
-  sourceId            String?
-  quantity            Int                          @default(1)
-  notes               String?
-  createdAt           DateTime                     @default(now())
-  updatedAt           DateTime                     @updatedAt
+// ============================================================
+// SETS
+// ============================================================
 
-  collectionElement CollectionElement @relation(fields: [collectionElementId], references: [id], onDelete: Cascade)
+model Set {
+  id String @id @default(uuid()) @db.Uuid
 
-  @@index([collectionElementId])
-  @@map("collection_element_sources")
-}
+  rebrickableSetNum String @unique
 
-model StorageLocation {
-  id        String   @id @default(uuid()) @db.Uuid
-  name      String
-  code      String?  @unique
-  parentId  String?  @db.Uuid
-  notes     String?
+  name     String
+  year     Int
+  numParts Int?
+
+  themeId String? @db.Uuid
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  parent   StorageLocation?  @relation("StorageLocationTree", fields: [parentId], references: [id], onDelete: Cascade)
-  children StorageLocation[] @relation("StorageLocationTree")
+  theme Theme? @relation(fields: [themeId], references: [id], onDelete: SetNull)
+
+  inventories           Inventory[]
+  collectionSets        CollectionSet[]
+  inventorySets         InventorySet[]
+  collectionPartSources CollectionPartSource[]
+
+  externalIds ExternalSetId[]
+
+  @@index([themeId])
+  @@index([year])
+  @@index([name])
+  @@map("sets")
+}
+
+// ============================================================
+// INVENTORIES
+// ============================================================
+
+model Inventory {
+  id String @id @default(uuid()) @db.Uuid
+
+  rebrickableId Int @unique
+
+  version Int
+
+  setId String @db.Uuid
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  set Set @relation(fields: [setId], references: [id], onDelete: Cascade)
+
+  parts    InventoryPart[]
+  sets     InventorySet[]
+  minifigs InventoryMinifig[]
+
+  @@unique([setId, version])
+  @@index([setId])
+  @@map("inventories")
+}
+
+// ============================================================
+// INVENTORY PARTS
+// ============================================================
+
+model InventoryPart {
+  id String @id @default(uuid()) @db.Uuid
+
+  inventoryId String @db.Uuid
+  partId      String @db.Uuid
+  colorId     String @db.Uuid
+
+  quantity Int
+
+  isSpare Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  inventory Inventory @relation(fields: [inventoryId], references: [id], onDelete: Cascade)
+  part      Part      @relation(fields: [partId], references: [id], onDelete: Restrict)
+  color     Color     @relation(fields: [colorId], references: [id], onDelete: Restrict)
+
+  @@unique([inventoryId, partId, colorId, isSpare])
+  @@index([inventoryId])
+  @@index([partId])
+  @@index([colorId])
+  @@map("inventory_parts")
+}
+
+// ============================================================
+// INVENTORY SETS
+// ============================================================
+
+model InventorySet {
+  id String @id @default(uuid()) @db.Uuid
+
+  inventoryId String @db.Uuid
+  setId       String @db.Uuid
+
+  quantity Int
+
+  createdAt DateTime @default(now())
+
+  inventory Inventory @relation(fields: [inventoryId], references: [id], onDelete: Cascade)
+  set       Set       @relation(fields: [setId], references: [id], onDelete: Restrict)
+
+  @@unique([inventoryId, setId])
+  @@index([inventoryId])
+  @@index([setId])
+  @@map("inventory_sets")
+}
+
+// ============================================================
+// MINIFIGS
+// ============================================================
+
+model Minifig {
+  id String @id @default(uuid()) @db.Uuid
+
+  rebrickableFigNum String @unique
+
+  name     String
+  numParts Int?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  inventories InventoryMinifig[]
+
+  externalIds ExternalMinifigId[]
+
+  @@index([name])
+  @@map("minifigs")
+}
+
+// ============================================================
+// INVENTORY MINIFIGS
+// ============================================================
+
+model InventoryMinifig {
+  id String @id @default(uuid()) @db.Uuid
+
+  inventoryId String @db.Uuid
+  minifigId   String @db.Uuid
+
+  quantity Int
+
+  createdAt DateTime @default(now())
+
+  inventory Inventory @relation(fields: [inventoryId], references: [id], onDelete: Cascade)
+  minifig   Minifig   @relation(fields: [minifigId], references: [id], onDelete: Restrict)
+
+  @@unique([inventoryId, minifigId])
+  @@index([inventoryId])
+  @@index([minifigId])
+  @@map("inventory_minifigs")
+}
+
+// ============================================================
+// EXTERNAL PART IDS
+// ============================================================
+
+model ExternalPartId {
+  id String @id @default(uuid()) @db.Uuid
+
+  partId String @db.Uuid
+
+  source     ExternalSource
+  externalId String
+
+  createdAt DateTime @default(now())
+
+  part Part @relation(fields: [partId], references: [id], onDelete: Cascade)
+
+  @@unique([source, externalId])
+  @@index([partId])
+  @@index([source])
+  @@map("external_part_ids")
+}
+
+// ============================================================
+// EXTERNAL COLOR IDS
+// ============================================================
+
+model ExternalColorId {
+  id String @id @default(uuid()) @db.Uuid
+
+  colorId String @db.Uuid
+
+  source     ExternalSource
+  externalId String
+
+  createdAt DateTime @default(now())
+
+  color Color @relation(fields: [colorId], references: [id], onDelete: Cascade)
+
+  @@unique([source, externalId])
+  @@index([colorId])
+  @@index([source])
+  @@map("external_color_ids")
+}
+
+// ============================================================
+// EXTERNAL ELEMENT IDS
+// ============================================================
+
+model ExternalElementId {
+  id String @id @default(uuid()) @db.Uuid
+
+  elementId String @db.Uuid
+
+  source     ExternalSource
+  externalId String
+
+  createdAt DateTime @default(now())
+
+  element Element @relation(fields: [elementId], references: [id], onDelete: Cascade)
+
+  @@unique([source, externalId])
+  @@index([elementId])
+  @@index([source])
+  @@map("external_element_ids")
+}
+
+// ============================================================
+// EXTERNAL SET IDS
+// ============================================================
+
+model ExternalSetId {
+  id String @id @default(uuid()) @db.Uuid
+
+  setId String @db.Uuid
+
+  source     ExternalSource
+  externalId String
+
+  createdAt DateTime @default(now())
+
+  set Set @relation(fields: [setId], references: [id], onDelete: Cascade)
+
+  @@unique([source, externalId])
+  @@index([setId])
+  @@index([source])
+  @@map("external_set_ids")
+}
+
+// ============================================================
+// EXTERNAL MINIFIG IDS
+// ============================================================
+
+model ExternalMinifigId {
+  id String @id @default(uuid()) @db.Uuid
+
+  minifigId String @db.Uuid
+
+  source     ExternalSource
+  externalId String
+
+  createdAt DateTime @default(now())
+
+  minifig Minifig @relation(fields: [minifigId], references: [id], onDelete: Cascade)
+
+  @@unique([source, externalId])
+  @@index([minifigId])
+  @@index([source])
+  @@map("external_minifig_ids")
+}
+
+// ============================================================
+// USER COLLECTION - SETS
+// ============================================================
+
+model CollectionSet {
+  id String @id @default(uuid()) @db.Uuid
+
+  collectionId String @db.Uuid
+  setId        String @db.Uuid
+
+  condition   CollectionSetCondition   @default(USED)
+  partsSource CollectionSetPartsSource @default(ORIGINAL_SET)
+  buildStatus CollectionSetBuildStatus @default(ASSEMBLED)
+
+  isComplete      Boolean @default(true)
+  hasBox          Boolean @default(false)
+  hasInstructions Boolean @default(false)
+
+  purchasePrice Decimal?  @db.Decimal(12, 2)
+  purchaseDate  DateTime?
+
+  notes String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  collection Collection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+  set        Set        @relation(fields: [setId], references: [id], onDelete: Restrict)
+
+  @@index([collectionId])
+  @@index([setId])
+  @@index([condition])
+  @@index([buildStatus])
+  @@map("collection_sets")
+}
+
+// ============================================================
+// USER'S LOOSE PART INVENTORY
+// ============================================================
+
+model CollectionPart {
+  id String @id @default(uuid()) @db.Uuid
+
+  collectionId String @db.Uuid
+  partId       String @db.Uuid
+  colorId      String @db.Uuid
+
+  quantity Int @default(0)
+
+  notes String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  collection Collection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+  part       Part       @relation(fields: [partId], references: [id], onDelete: Restrict)
+  color      Color      @relation(fields: [colorId], references: [id], onDelete: Restrict)
+
+  sources CollectionPartSource[]
+
+  storage ElementStorage[]
+
+  @@unique([collectionId, partId, colorId])
+  @@index([collectionId])
+  @@index([partId])
+  @@index([colorId])
+  @@map("collection_parts")
+}
+
+// ============================================================
+// SOURCE OF USER'S LOOSE PARTS
+// ============================================================
+
+model CollectionPartSource {
+  id String @id @default(uuid()) @db.Uuid
+
+  collectionPartId String @db.Uuid
+
+  sourceType CollectionPartSourceType
+
+  sourceSetId String? @db.Uuid
+
+  quantity Int
+
+  notes String?
+
+  createdAt DateTime @default(now())
+
+  collectionPart CollectionPart @relation(fields: [collectionPartId], references: [id], onDelete: Cascade)
+  sourceSet      Set?           @relation(fields: [sourceSetId], references: [id], onDelete: SetNull)
+
+  @@index([collectionPartId])
+  @@index([sourceSetId])
+  @@map("collection_part_sources")
+}
+
+// ============================================================
+// STORAGE LOCATIONS
+// ============================================================
+
+model StorageLocation {
+  id String @id @default(uuid()) @db.Uuid
+
+  collectionId String  @db.Uuid
+  parentId     String? @db.Uuid
+
+  name        String
+  code        String?
+  description String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  collection Collection      @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+  parent     StorageLocation? @relation("LocationHierarchy", fields: [parentId], references: [id], onDelete: SetNull)
+
+  children StorageLocation[] @relation("LocationHierarchy")
 
   elements ElementStorage[]
 
+  @@index([collectionId])
   @@index([parentId])
   @@map("storage_locations")
 }
 
-model ElementStorage {
-  id               String   @id @default(uuid()) @db.Uuid
-  elementId        String   @db.Uuid
-  storageLocationId String  @db.Uuid
-  quantity         Int      @default(0)
-  notes            String?
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+// ============================================================
+// PART STORAGE
+// ============================================================
 
-  element        Element        @relation(fields: [elementId], references: [id], onDelete: Cascade)
+model ElementStorage {
+  id String @id @default(uuid()) @db.Uuid
+
+  collectionPartId  String @db.Uuid
+  storageLocationId String @db.Uuid
+
+  quantity Int
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  collectionPart  CollectionPart  @relation(fields: [collectionPartId], references: [id], onDelete: Cascade)
   storageLocation StorageLocation @relation(fields: [storageLocationId], references: [id], onDelete: Cascade)
 
-  @@unique([elementId, storageLocationId])
+  @@unique([collectionPartId, storageLocationId])
+  @@index([collectionPartId])
   @@index([storageLocationId])
   @@map("element_storage")
 }

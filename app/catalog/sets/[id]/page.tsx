@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ArrowLeft, Package, Users, Boxes } from "lucide-react";
 import { prisma } from "@/prisma/client";
 
 export default async function CatalogSetDetailsPage({
@@ -13,18 +14,44 @@ export default async function CatalogSetDetailsPage({
       id,
     },
     include: {
-      class: true,
-      elements: {
+      theme: true,
+      inventories: {
+        orderBy: {
+          version: "desc",
+        },
+        take: 1,
         include: {
-          element: {
+          parts: {
             include: {
               part: true,
               color: true,
             },
+            orderBy: {
+              part: {
+                rebrickablePartNum: "asc",
+              },
+            },
           },
-        },
-        orderBy: {
-          createdAt: "asc",
+          minifigs: {
+            include: {
+              minifig: true,
+            },
+            orderBy: {
+              minifig: {
+                rebrickableFigNum: "asc",
+              },
+            },
+          },
+          sets: {
+            include: {
+              set: true,
+            },
+            orderBy: {
+              set: {
+                rebrickableSetNum: "asc",
+              },
+            },
+          },
         },
       },
     },
@@ -32,158 +59,216 @@ export default async function CatalogSetDetailsPage({
 
   if (!set) {
     return (
-      <div className="p-6">
-        <div className="rounded-lg border bg-card p-8">
-          <h1 className="text-xl font-semibold">Set not found</h1>
-
+      <div className="min-h-screen bg-amber-50/20 p-4 sm:p-6 lg:p-8">
+        <div className="mx-auto max-w-4xl">
           <Link
             href="/catalog/sets"
-            className="mt-4 inline-block text-sm underline"
+            className="inline-flex items-center gap-2 text-sm font-medium text-zinc-500 hover:text-amber-700"
           >
-            ← Back to Sets
+            <ArrowLeft className="h-4 w-4" />
+            Back to sets
           </Link>
+
+          <div className="mt-6 rounded-2xl border border-amber-900/10 bg-white p-8 text-center shadow-sm">
+            <h1 className="text-xl font-bold text-zinc-900">
+              Set not found
+            </h1>
+            <p className="mt-2 text-sm text-zinc-500">
+              Nie znaleziono zestawu o podanym ID.
+            </p>
+          </div>
         </div>
       </div>
     );
   }
 
+  const inventory = set.inventories[0];
+
   return (
-    <div className="space-y-6 p-6">
-      <div>
+    <div className="min-h-screen bg-amber-50/20 p-4 sm:p-6 lg:p-8">
+      <div className="mx-auto max-w-6xl space-y-6">
         <Link
           href="/catalog/sets"
-          className="text-sm text-muted-foreground hover:text-foreground"
+          className="inline-flex items-center gap-2 text-sm font-medium text-zinc-500 hover:text-amber-700"
         >
-          ← Back to Sets
+          <ArrowLeft className="h-4 w-4" />
+          Back to sets
         </Link>
 
-        <div className="mt-4 flex items-start justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-semibold tracking-tight">
-              {set.name}
-            </h1>
+        <div className="rounded-2xl border border-amber-900/10 bg-white p-6 shadow-sm sm:p-8">
+          <span className="inline-flex rounded-full bg-amber-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-amber-700">
+            LEGO Set
+          </span>
 
-            <div className="mt-2 flex flex-wrap gap-2 text-sm text-muted-foreground">
-              {set.setNumber && (
-                <span className="rounded-md border px-2 py-1">
-                  {set.setNumber}
-                </span>
-              )}
+          <h1 className="mt-3 text-2xl font-extrabold tracking-tight text-zinc-900 sm:text-3xl">
+            {set.name}
+          </h1>
 
-              <span className="rounded-md border px-2 py-1">
-                {set.type}
-              </span>
+          <p className="mt-2 font-mono text-sm font-semibold text-amber-800">
+            {set.rebrickableSetNum}
+          </p>
 
-              {set.class && (
-                <span className="rounded-md border px-2 py-1">
-                  {set.class.name}
-                </span>
-              )}
+          <div className="mt-6 grid gap-4 sm:grid-cols-3">
+            <div className="rounded-xl bg-amber-50 p-4">
+              <div className="text-xs font-semibold uppercase text-zinc-400">
+                Year
+              </div>
+              <div className="mt-1 text-lg font-bold text-zinc-900">
+                {set.year}
+              </div>
+            </div>
+
+            <div className="rounded-xl bg-amber-50 p-4">
+              <div className="text-xs font-semibold uppercase text-zinc-400">
+                Parts
+              </div>
+              <div className="mt-1 text-lg font-bold text-zinc-900">
+                {set.numParts ?? "—"}
+              </div>
+            </div>
+
+            <div className="rounded-xl bg-amber-50 p-4">
+              <div className="text-xs font-semibold uppercase text-zinc-400">
+                Theme
+              </div>
+              <div className="mt-1 text-lg font-bold text-zinc-900">
+                {set.theme?.name ?? "—"}
+              </div>
             </div>
           </div>
-
-          <Link
-            href={`/catalog/sets/${set.id}/elements/new`}
-            className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
-          >
-            Add Element
-          </Link>
-        </div>
-      </div>
-
-      {set.description && (
-        <div className="rounded-lg border bg-card p-5">
-          <h2 className="text-sm font-semibold">Description</h2>
-
-          <p className="mt-2 text-sm text-muted-foreground">
-            {set.description}
-          </p>
-        </div>
-      )}
-
-      <div className="rounded-lg border bg-card">
-        <div className="border-b bg-muted/50 px-4 py-3">
-          <h2 className="font-semibold">Set Elements</h2>
-
-          <p className="mt-1 text-sm text-muted-foreground">
-            Elements that belong to this LEGO set.
-          </p>
         </div>
 
-        {set.elements && set.elements.length === 0 ? (
-          <div className="p-8 text-center">
-            <h3 className="font-medium">No elements yet</h3>
+        {!inventory ? (
+          <div className="rounded-2xl border border-amber-900/10 bg-white p-8 text-center shadow-sm">
+            <Package className="mx-auto h-8 w-8 text-amber-600" />
 
-            <p className="mt-2 text-sm text-muted-foreground">
-              Add the first element to this set.
+            <h2 className="mt-3 text-lg font-bold text-zinc-900">
+              No inventory yet
+            </h2>
+
+            <p className="mt-1 text-sm text-zinc-500">
+              Dla tego zestawu nie ma jeszcze zaimportowanego inventory.
             </p>
-
-            <Link
-              href={`/catalog/sets/${set.id}/elements/new`}
-              className="mt-4 inline-block rounded-md border px-4 py-2 text-sm font-medium hover:bg-muted"
-            >
-              Add Element
-            </Link>
           </div>
         ) : (
-          <div>
-            {set.elements.map((setElement) => (
-              <div
-                key={setElement.id}
-                className="grid grid-cols-6 gap-4 border-b px-4 py-4 text-sm last:border-0"
-              >
-                <div>
-                  <div className="font-medium">
-                    {setElement.element.legoElementNumber}
+          <>
+            <div className="grid gap-4 sm:grid-cols-3">
+              <div className="rounded-2xl border border-amber-900/10 bg-white p-5 shadow-sm">
+                <div className="flex items-center gap-3">
+                  <Boxes className="h-5 w-5 text-amber-600" />
+                  <div>
+                    <div className="text-xs font-semibold uppercase text-zinc-400">
+                      Parts
+                    </div>
+                    <div className="text-xl font-bold text-zinc-900">
+                      {inventory.parts.length}
+                    </div>
                   </div>
-
-                  <div className="mt-1 text-xs text-muted-foreground">
-                    Element
-                  </div>
-                </div>
-
-                <div className="col-span-2">
-                  <div className="font-medium">
-                    {setElement.element.name}
-                  </div>
-
-                  <div className="mt-1 text-xs text-muted-foreground">
-                    {setElement.element.part?.partNumber || "No Part"}
-                  </div>
-                </div>
-
-                <div>
-                  <div className="font-medium">
-                    {setElement.element.color?.name || "—"}
-                  </div>
-
-                  <div className="mt-1 text-xs text-muted-foreground">
-                    Color
-                  </div>
-                </div>
-
-                <div>
-                  <div className="font-medium">
-                    {setElement.quantity}
-                  </div>
-
-                  <div className="mt-1 text-xs text-muted-foreground">
-                    Quantity
-                  </div>
-                </div>
-
-                <div>
-                  {setElement.isSpare ? (
-                    <span className="inline-flex rounded-md border px-2 py-1 text-xs font-medium">
-                      Spare
-                    </span>
-                  ) : (
-                    <span className="text-muted-foreground">Regular</span>
-                  )}
                 </div>
               </div>
-            ))}
-          </div>
+
+              <div className="rounded-2xl border border-amber-900/10 bg-white p-5 shadow-sm">
+                <div className="flex items-center gap-3">
+                  <Users className="h-5 w-5 text-amber-600" />
+                  <div>
+                    <div className="text-xs font-semibold uppercase text-zinc-400">
+                      Minifigs
+                    </div>
+                    <div className="text-xl font-bold text-zinc-900">
+                      {inventory.minifigs.length}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="rounded-2xl border border-amber-900/10 bg-white p-5 shadow-sm">
+                <div className="text-xs font-semibold uppercase text-zinc-400">
+                  Inventory version
+                </div>
+                <div className="mt-1 text-xl font-bold text-zinc-900">
+                  {inventory.version}
+                </div>
+              </div>
+            </div>
+
+            <div className="overflow-hidden rounded-2xl border border-amber-900/10 bg-white shadow-sm">
+              <div className="border-b border-amber-900/10 bg-amber-50/50 px-6 py-4">
+                <h2 className="font-bold text-zinc-900">
+                  Inventory parts
+                </h2>
+              </div>
+
+              {inventory.parts.length === 0 ? (
+                <div className="p-8 text-center text-sm text-zinc-500">
+                  Brak części w inventory.
+                </div>
+              ) : (
+                <div className="divide-y divide-zinc-100">
+                  {inventory.parts.map((item) => (
+                    <div
+                      key={item.id}
+                      className="flex flex-col gap-2 px-6 py-4 sm:flex-row sm:items-center sm:justify-between"
+                    >
+                      <div>
+                        <div className="font-mono text-sm font-semibold text-amber-800">
+                          {item.part.rebrickablePartNum}
+                        </div>
+                        <div className="mt-1 text-sm text-zinc-900">
+                          {item.part.name}
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-3">
+                        <span className="rounded-full bg-zinc-100 px-2.5 py-1 text-xs text-zinc-600">
+                          {item.color.name}
+                        </span>
+
+                        <span className="font-semibold text-zinc-900">
+                          × {item.quantity}
+                        </span>
+
+                        {item.isSpare && (
+                          <span className="rounded-full bg-orange-100 px-2.5 py-1 text-xs text-orange-800">
+                            Spare
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {inventory.minifigs.length > 0 && (
+              <div className="overflow-hidden rounded-2xl border border-amber-900/10 bg-white shadow-sm">
+                <div className="border-b border-amber-900/10 bg-amber-50/50 px-6 py-4">
+                  <h2 className="font-bold text-zinc-900">Minifigs</h2>
+                </div>
+
+                <div className="divide-y divide-zinc-100">
+                  {inventory.minifigs.map((item) => (
+                    <div
+                      key={item.id}
+                      className="flex items-center justify-between px-6 py-4"
+                    >
+                      <div>
+                        <div className="font-mono text-sm font-semibold text-amber-800">
+                          {item.minifig.rebrickableFigNum}
+                        </div>
+                        <div className="mt-1 text-sm text-zinc-900">
+                          {item.minifig.name}
+                        </div>
+                      </div>
+
+                      <span className="font-semibold text-zinc-900">
+                        × {item.quantity}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>

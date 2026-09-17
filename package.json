@@ -64,6 +64,7 @@
     "clsx": "^2.1.1",
     "cmdk": "^1.0.0",
     "cookies": "^0.9.1",
+    "csv-parse": "^7.0.2",
     "date-fns": "^4.4.0",
     "exceljs": "^4.4.0",
     "js-cookie": "^3.0.8",
