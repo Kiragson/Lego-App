@@ -1,103 +1,75 @@
 /**
- * Admin sidebar nav config (REQ-0094).
- * Single source for AdminSidebar hrefs and RouteWarmPrefetch admin RSC warm.
+ * LEGO application admin/sidebar navigation.
+ * Single source for sidebar routes and route prefetching.
  */
-
-import type { AdminCounts } from "@/types";
 
 export type AdminNavItemConfig = {
   href: string;
   label: string;
-  /** Key in admin counts for badge (optional) */
-  countKey?: keyof Pick<
-    AdminCounts,
-    | "clientOrders"
-    | "clientInvoices"
-    | "supportTickets"
-    | "productReviews"
-    | "products"
-    | "warehouses"
-    | "suppliers"
-    | "clients"
-    | "users"
-  >;
 };
 
-export const ADMIN_MY_STORE_ITEMS: AdminNavItemConfig[] = [
+export const ADMIN_DASHBOARD_ITEMS: AdminNavItemConfig[] = [
   {
-    href: "/admin/dashboard-overall-insights",
-    label: "Store Overview",
-  },
-  {
-    href: "/admin/orders",
-    label: "Orders",
-    countKey: "clientOrders",
-  },
-  {
-    href: "/admin/invoices",
-    label: "Invoices",
-    countKey: "clientInvoices",
-  },
-  {
-    href: "/admin/support-tickets",
-    label: "Support Tickets",
-    countKey: "supportTickets",
-  },
-  {
-    href: "/admin/product-reviews",
-    label: "Product Reviews",
-    countKey: "productReviews",
+    href: "/",
+    label: "Dashboard",
   },
 ];
 
-export const ADMIN_MANAGEMENT_ITEMS: AdminNavItemConfig[] = [
+export const ADMIN_COLLECTION_ITEMS: AdminNavItemConfig[] = [
   {
-    href: "/admin/products",
-    label: "Products",
-    countKey: "products",
+    href: "/collection/sets",
+    label: "Sets",
   },
   {
-    href: "/admin/warehouses",
-    label: "Warehouses",
-    countKey: "warehouses",
-  },
-  {
-    href: "/admin/supplier-portal",
-    label: "Supplier Portal",
-    countKey: "suppliers",
-  },
-  {
-    href: "/admin/client-portal",
-    label: "Client Portal",
-    countKey: "clients",
-  },
-  {
-    href: "/admin/user-management",
-    label: "User Management",
-    countKey: "users",
-  },
-  {
-    href: "/admin/activity-history",
-    label: "Activity History",
+    href: "/collection/elements",
+    label: "Elements",
   },
 ];
 
-export const ADMIN_MY_ACTIVITY_ITEMS: AdminNavItemConfig[] = [
+export const ADMIN_CATALOG_ITEMS: AdminNavItemConfig[] = [
   {
-    href: "/admin/my-activity",
-    label: "My Activity",
+    href: "/catalog/sets",
+    label: "Sets",
+  },
+  {
+    href: "/catalog/elements",
+    label: "Elements",
+  },
+  {
+    href: "/catalog/colors",
+    label: "Colors",
+  },
+  { 
+    href: "/catalog/parts", 
+    label: "Parts" 
   },
 ];
 
-export const ADMIN_SETTINGS_EMAIL_HREF = "/admin/settings/email-preferences";
+export const ADMIN_STORAGE_ITEMS: AdminNavItemConfig[] = [
+  {
+    href: "/storage/locations",
+    label: "Locations",
+  },
+];
 
-/** Flat deduped admin sidebar paths for idle RSC warm (admin/user roles). */
+export const ADMIN_SETTINGS_ITEMS: AdminNavItemConfig[] = [
+  {
+    href: "/settings",
+    label: "Settings",
+  },
+];
+
+/**
+ * Flat, deduplicated paths used by RouteWarmPrefetch.
+ */
 export function getAdminSidebarWarmPaths(): string[] {
   const paths = [
-    ...ADMIN_MY_STORE_ITEMS.map((item) => item.href),
-    ...ADMIN_MANAGEMENT_ITEMS.map((item) => item.href),
-    ...ADMIN_MY_ACTIVITY_ITEMS.map((item) => item.href),
-    ADMIN_SETTINGS_EMAIL_HREF,
+    ...ADMIN_DASHBOARD_ITEMS.map((item) => item.href),
+    ...ADMIN_COLLECTION_ITEMS.map((item) => item.href),
+    ...ADMIN_CATALOG_ITEMS.map((item) => item.href),
+    ...ADMIN_STORAGE_ITEMS.map((item) => item.href),
+    ...ADMIN_SETTINGS_ITEMS.map((item) => item.href),
   ];
+
   return [...new Set(paths)];
 }

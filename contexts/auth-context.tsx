@@ -162,9 +162,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
     if (localStorage.getItem("getSession") === null) {
       localStorage.setItem("getSession", "");
     }
-    if (localStorage.getItem("theme") === null) {
-      localStorage.setItem("theme", "light");
-    }
+    //if (localStorage.getItem("theme") === null) {
+    //  localStorage.setItem("theme", "light");
+    //}
     if (localStorage.getItem("jiraBaseUrl") === null) {
       localStorage.setItem("jiraBaseUrl", "atlassian.net");
     }

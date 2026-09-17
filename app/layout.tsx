@@ -2,30 +2,35 @@
  * Root layout: fonts, metadata (SEO), and providers (Query, Auth, Theme, Toaster).
  * Wraps all pages; force-dynamic so useSearchParams and server session work correctly.
  */
+import React from "react";
+import { Poppins } from "next/font/google";
+import localFont from "next/font/local";
+
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { KeyboardShortcutsProvider } from "@/components/providers/KeyboardShortcutsProvider";
-import { Poppins } from "next/font/google";
-import localFont from "next/font/local";
-import React from "react";
+import { ThemeProvider } from "@/components/providers/ThemeProvider";
+import { RouteWarmPrefetch } from "@/components/providers/RouteWarmPrefetch";
+
 import { AuthProvider } from "@/contexts";
 import { ShellSsrProvider } from "@/contexts/shell-ssr-context";
+
 import { getSession } from "@/lib/auth-server";
 import { mapSessionToAppUser } from "@/lib/auth/map-session-user";
-import { getShellNotificationsForUser } from "@/lib/server/notifications-data";
 import { QueryProvider } from "@/lib/react-query";
-import "./globals.css";
-import { ThemeProvider } from "@/components/providers/ThemeProvider";
+
 import { ErrorBoundary } from "@/components/shared/ErrorBoundary";
 import { AuthSessionToasts } from "@/components/shared/AuthSessionToasts";
 import { SuppressApiErrorOverlay } from "@/components/shared/SuppressApiErrorOverlay";
-import { RouteWarmPrefetch } from "@/components/providers/RouteWarmPrefetch";
+
+import "./globals.css";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
   variable: "--font-geist-sans",
   weight: "100 900",
 });
+
 const geistMono = localFont({
   src: "./fonts/GeistMonoVF.woff",
   variable: "--font-geist-mono",
@@ -125,9 +130,6 @@ export default async function RootLayout({
 }>) {
   const session = await getSession();
   const initialUser = session ? mapSessionToAppUser(session) : null;
-  const shellNotifications = session
-    ? await getShellNotificationsForUser(session.id)
-    : null;
 
   return (
     <html
@@ -146,30 +148,30 @@ export default async function RootLayout({
           <QueryProvider>
             <AuthProvider initialUser={initialUser}>
               <ShellSsrProvider
-                value={
-                  shellNotifications ?? {
-                    initialNotifications: undefined,
-                    initialUnreadCount: undefined,
-                  }
-                }
+                value={{
+                  initialNotifications: undefined,
+                  initialUnreadCount: undefined,
+                }}
               >
-              <RouteWarmPrefetch />
-              <SuppressApiErrorOverlay />
-              <ThemeProvider
-                attribute="class"
-                defaultTheme="system"
-                enableSystem
-                disableTransitionOnChange
-              >
-                <TooltipProvider delayDuration={200}>
-                  <KeyboardShortcutsProvider>
-                    {children}
-                  </KeyboardShortcutsProvider>
-                </TooltipProvider>
-              </ThemeProvider>
-              {/* Toaster must mount before AuthSessionToasts so useToast listeners exist when deferred toasts fire */}
-              <Toaster />
-              <AuthSessionToasts />
+                <RouteWarmPrefetch />
+                <SuppressApiErrorOverlay />
+                
+                <ThemeProvider
+                  attribute="class"
+                  defaultTheme="system"
+                  enableSystem
+                  disableTransitionOnChange
+                >
+                  <TooltipProvider delayDuration={200}>
+                    <KeyboardShortcutsProvider>
+                      {children}
+                    </KeyboardShortcutsProvider>
+                  </TooltipProvider>
+                </ThemeProvider>
+
+                {/* Toaster must mount before AuthSessionToasts so useToast listeners exist when deferred toasts fire */}
+                <Toaster />
+                <AuthSessionToasts />
               </ShellSsrProvider>
             </AuthProvider>
           </QueryProvider>
